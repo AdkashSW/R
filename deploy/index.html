@@ -661,6 +661,34 @@
     color: var(--text-muted);
     cursor: pointer;
   }
+  .ai-model-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .ai-model-select {
+    flex: 1;
+    min-width: 180px;
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 12.5px;
+    font-family: inherit;
+    outline: none;
+  }
+  .ai-model-select:focus { border-color: var(--accent); }
+  .ai-fallback-note {
+    font-size: 11.5px;
+    color: var(--warn-text);
+    background: var(--warn-bg);
+    border-left: 3px solid var(--warn-border);
+    padding: 5px 9px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+  }
   .ai-messages {
     flex: 1;
     overflow-y: auto;
@@ -849,6 +877,20 @@
         <button class="ai-mode-btn active" data-mode="solve">&#128221; Решить задачу</button>
         <button class="ai-mode-btn" data-mode="debug">&#128030; Найти ошибку</button>
         <button class="ai-mode-btn" data-mode="explain">&#128161; Объяснить код</button>
+      </div>
+      <div class="ai-model-row">
+        <select id="aiModelSelect" class="ai-model-select" title="Выбор бесплатной модели">
+          <option value="deepseek/deepseek-v4.1-flash:free">DeepSeek V4.1 Flash (free)</option>
+          <option value="z-ai/glm-5.3-flash:free">GLM 5.3 Flash (free)</option>
+          <option value="moonshotai/kimi-k3.1-pro:free">Kimi K3.1 Pro (free)</option>
+          <option value="z-ai/glm-5.3:free">GLM 5.3 (free)</option>
+          <option value="nvidia/nemotron-3-ultra-550b-a55b:free">Nemotron 3 Ultra (free)</option>
+          <option value="__custom__">Своя модель (из настроек)</option>
+        </select>
+        <label class="ai-context-check" title="При перегрузке 429 автоматически пробовать другую свободную модель">
+          <input type="checkbox" id="aiAutoFallback" checked />
+          <span>Автозамена при 429</span>
+        </label>
       </div>
       <label class="ai-context-check">
         <input type="checkbox" id="aiIncludeLesson" checked />
@@ -1134,11 +1176,23 @@ let aiMode = "solve";
 let aiHistory = [];
 let aiBusy = false;
 
+const FREE_MODELS = [
+  "deepseek/deepseek-v4.1-flash:free",
+  "z-ai/glm-5.3-flash:free",
+  "moonshotai/kimi-k3.1-pro:free",
+  "z-ai/glm-5.3:free",
+  "nvidia/nemotron-3-ultra-550b-a55b:free"
+];
+
 function syncAiSettingsUI() {
   document.getElementById("aiBaseUrl").value = aiCfg.baseUrl;
   document.getElementById("aiApiKey").value = aiCfg.apiKey;
   document.getElementById("aiModelId").value = aiCfg.model;
   document.getElementById("aiModelBadge").textContent = aiCfg.model;
+  const sel = document.getElementById("aiModelSelect");
+  if (sel) {
+    sel.value = FREE_MODELS.includes(aiCfg.model) ? aiCfg.model : "__custom__";
+  }
 }
 
 function getCurrentScriptObj() {
@@ -1214,7 +1268,8 @@ function renderAiMessages() {
   box.innerHTML = aiHistory.map(m => {
     if (m.role === "user") return `<div class="ai-msg user">${escapeHtml(m.content)}</div>`;
     if (m.role === "error") return `<div class="ai-msg error">${escapeHtml(m.content)}</div>`;
-    return `<div class="ai-msg assistant">${formatAssistantMarkdown(m.content)}</div>`;
+    const note = m.switchedFrom ? `<div class="ai-fallback-note">Модель <b>${escapeHtml(m.switchedFrom)}</b> была перегружена (429) — ответ получен от <b>${escapeHtml(m.usedModel)}</b></div>` : "";
+    return `<div class="ai-msg assistant">${note}${formatAssistantMarkdown(m.content)}</div>`;
   }).join("");
 
   box.querySelectorAll("[data-copy-id]").forEach(btn => {
@@ -1291,26 +1346,61 @@ async function sendAiMessage() {
     reqHeaders["Authorization"] = `Bearer ${aiCfg.apiKey}`;
   }
 
-  try {
-    const resp = await fetch(endpoint, {
-      method: "POST",
-      headers: reqHeaders,
-      body: JSON.stringify({
-        model: aiCfg.model,
-        messages: apiMessages,
-        temperature: 0.2
-      })
-    });
+  const autoFallback = document.getElementById("aiAutoFallback").checked;
+  const modelsToTry = [aiCfg.model];
+  if (autoFallback) {
+    FREE_MODELS.forEach(m => { if (!modelsToTry.includes(m)) modelsToTry.push(m); });
+  }
 
-    if (!resp.ok) {
-      const errText = await resp.text();
-      throw new Error(`HTTP ${resp.status}: ${errText.slice(0, 300)}`);
+  try {
+    let reply = null;
+    let usedModel = aiCfg.model;
+    let lastError = null;
+
+    for (let i = 0; i < modelsToTry.length; i++) {
+      const candidate = modelsToTry[i];
+      if (i > 0) sendBtn.textContent = `Пробую ${i + 1}/${modelsToTry.length}...`;
+
+      const resp = await fetch(endpoint, {
+        method: "POST",
+        headers: reqHeaders,
+        body: JSON.stringify({
+          model: candidate,
+          messages: apiMessages,
+          temperature: 0.2
+        })
+      });
+
+      if (resp.status === 429 || resp.status === 503) {
+        const errText = await resp.text();
+        lastError = new Error(`HTTP ${resp.status} (${candidate}): ${errText.slice(0, 200)}`);
+        continue;
+      }
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error(`HTTP ${resp.status}: ${errText.slice(0, 300)}`);
+      }
+
+      const data = await resp.json();
+      const content = data?.choices?.[0]?.message?.content;
+      if (!content) throw new Error("Модель вернула пустой ответ.");
+      reply = content;
+      usedModel = candidate;
+      break;
     }
 
-    const data = await resp.json();
-    const reply = data?.choices?.[0]?.message?.content;
-    if (!reply) throw new Error("Модель вернула пустой ответ.");
-    aiHistory.push({ role: "assistant", content: reply });
+    if (!reply) {
+      throw lastError || new Error("Все выбранные модели сейчас перегружены (429). Попробуйте чуть позже.");
+    }
+
+    const switchedFrom = usedModel !== aiCfg.model ? aiCfg.model : null;
+    if (switchedFrom) {
+      aiCfg.model = usedModel;
+      localStorage.setItem(STORAGE_AI_CFG, JSON.stringify(aiCfg));
+      syncAiSettingsUI();
+    }
+    aiHistory.push({ role: "assistant", content: reply, usedModel, switchedFrom });
   } catch (err) {
     let msg = `Ошибка запроса: ${err.message}`;
     if (err.message.includes("Failed to fetch") || err.name === "TypeError") {
@@ -1326,6 +1416,16 @@ async function sendAiMessage() {
 }
 
 syncAiSettingsUI();
+document.getElementById("aiModelSelect").addEventListener("change", (e) => {
+  const val = e.target.value;
+  if (val === "__custom__") {
+    document.getElementById("aiSettingsPanel").classList.add("open");
+    return;
+  }
+  aiCfg.model = val;
+  localStorage.setItem(STORAGE_AI_CFG, JSON.stringify(aiCfg));
+  syncAiSettingsUI();
+});
 document.getElementById("openAiBtn").addEventListener("click", openAiDrawer);
 document.getElementById("aiCloseBtn").addEventListener("click", closeAiDrawer);
 document.getElementById("aiBackdrop").addEventListener("click", closeAiDrawer);
