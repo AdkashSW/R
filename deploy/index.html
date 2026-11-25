@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Курс R (Дни 1–3) — Интерактивный дашборд и методичка</title>
+<style>
+  :root {
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-2: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #475569;
+    --accent: #4f46e5;
+    --accent-soft: #eef2ff;
+    --code-bg: #0f172a;
+    --code-text: #e2e8f0;
+    --warn-bg: #fffbeb;
+    --warn-border: #f59e0b;
+    --warn-text: #92400e;
+    --ok: #10b981;
+    --shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  }
+  [data-theme="dark"] {
+    --bg: #0b1120;
+    --surface: #111827;
+    --surface-2: #1e293b;
+    --border: #334155;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --accent: #818cf8;
+    --accent-soft: rgba(129, 140, 248, 0.14);
+    --code-bg: #020617;
+    --code-text: #e2e8f0;
+    --warn-bg: rgba(245, 158, 11, 0.12);
+    --warn-border: #d97706;
+    --warn-text: #fcd34d;
+    --shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    box-shadow: var(--shadow);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4f46e5, #06b6d4);
+    color: #fff;
+    font-weight: 800;
+    font-size: 18px;
+    display: grid;
+    place-items: center;
+  }
+  .brand h1 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .brand p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .topbar-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    justify-content: flex-end;
+    max-width: 640px;
+  }
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+  }
+  .search-box input:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+    pointer-events: none;
+  }
+  .btn {
+    padding: 8px 13px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { opacity: 0.9; color: #fff; }
+  .stats-bar {
+    max-width: 1440px;
+    margin: 16px auto 0;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 12px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .stat-label { font-size: 12px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .stat-value { font-size: 22px; font-weight: 800; margin-top: 4px; }
+  .progress-track {
+    height: 6px;
+    background: var(--surface-2);
+    border-radius: 99px;
+    margin-top: 8px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--ok);
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .layout {
+    max-width: 1440px;
+    margin: 16px auto 40px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: 330px minmax(0, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+  .mobile-menu-btn {
+    display: none;
+  }
+  .sidebar-backdrop {
+    display: none;
+  }
+  .sidebar-close-btn {
+    display: none;
+  }
+  .sidebar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 78px;
+    max-height: calc(100vh - 96px);
+    overflow-y: auto;
+  }
+  @media (max-width: 960px) {
+    .topbar {
+      padding: 10px 14px;
+      gap: 10px;
+    }
+    .topbar-controls {
+      max-width: 100%;
+      width: 100%;
+      justify-content: space-between;
+    }
+    .mobile-menu-btn {
+      display: inline-flex;
+    }
+    .stats-bar {
+      padding: 0 14px;
+      margin-top: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+    .stat-card {
+      padding: 10px 12px;
+    }
+    .stat-value {
+      font-size: 18px;
+    }
+    .layout {
+      grid-template-columns: minmax(0, 1fr);
+      padding: 0 14px;
+      margin: 12px auto 28px;
+      gap: 12px;
+    }
+    .sidebar-backdrop.open {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.55);
+      z-index: 40;
+      backdrop-filter: blur(2px);
+    }
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: min(86vw, 340px);
+      max-height: 100vh;
+      border-radius: 0 16px 16px 0;
+      z-index: 50;
+      transform: translateX(-105%);
+      transition: transform 0.25s ease;
+      padding: 16px 14px 28px;
+    }
+    .sidebar.open {
+      transform: translateX(0);
+    }
+    .sidebar-close-btn {
+      display: inline-flex;
+      margin-bottom: 12px;
+      width: 100%;
+      justify-content: center;
+    }
+    .main-panel {
+      padding: 16px 14px;
+      min-width: 0;
+      border-radius: 12px;
+    }
+    .script-title {
+      font-size: 18px;
+    }
+    .tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      margin: 14px -2px;
+      padding-bottom: 8px;
+    }
+    .tabs::-webkit-scrollbar {
+      display: none;
+    }
+    .tab-btn {
+      white-space: nowrap;
+      flex-shrink: 0;
+      padding: 8px 12px;
+      font-size: 13.5px;
+    }
+    .dict-grid {
+      grid-template-columns: 1fr;
+    }
+    .code-block {
+      font-size: 12.5px;
+      padding: 10px 12px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .footer-nav {
+      flex-direction: column;
+      gap: 8px;
+    }
+    .footer-nav .btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+  @media (max-width: 480px) {
+    .brand h1 { font-size: 15px; }
+    .brand p { font-size: 11px; }
+    .search-box { min-width: 0; }
+    .btn { padding: 8px 10px; font-size: 12.5px; }
+  }
+  .day-pills {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .day-pill {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .day-pill.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .day-group { margin-bottom: 14px; }
+  .day-group-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    padding: 4px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .day-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .script-item {
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    padding: 9px 10px;
+    margin-top: 4px;
+    cursor: pointer;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    transition: all 0.12s ease;
+  }
+  .script-item:hover { background: var(--surface-2); }
+  .script-item.active {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .script-name {
+    font-size: 13px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .script-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .tag {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-family: Consolas, monospace;
+  }
+  .done-badge {
+    color: var(--ok);
+    font-weight: 800;
+    font-size: 13px;
+  }
+  .main-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    min-height: 540px;
+  }
+  .script-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .script-title {
+    margin: 6px 0 4px;
+    font-size: 22px;
+    font-weight: 800;
+  }
+  .day-badge {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    color: #fff;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin: 18px 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .tab-btn:hover { background: var(--surface-2); color: var(--text); }
+  .tab-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .overview-box {
+    white-space: pre-wrap;
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .dict-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 12px;
+  }
+  .dict-card {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+  }
+  .dict-term {
+    font-family: Consolas, "Courier New", monospace;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .dict-detail {
+    font-size: 13.5px;
+    color: var(--text);
+    margin-top: 4px;
+  }
+  .walk-heading {
+    margin: 22px 0 10px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    border-left: 3px solid var(--accent);
+    padding-left: 10px;
+  }
+  .code-block {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 13.5px;
+    overflow-x: auto;
+    margin: 12px 0 6px;
+    line-height: 1.5;
+    white-space: pre;
+  }
+  .walk-text {
+    margin: 0 0 14px;
+    padding: 8px 12px;
+    background: var(--surface-2);
+    border-radius: 8px;
+    font-size: 14.5px;
+    white-space: pre-wrap;
+  }
+  .walk-note {
+    margin: 8px 0 14px;
+    padding: 10px 14px;
+    background: var(--warn-bg);
+    border-left: 4px solid var(--warn-border);
+    color: var(--warn-text);
+    border-radius: 8px;
+    font-size: 14px;
+    white-space: pre-wrap;
+  }
+  .raw-wrap { position: relative; }
+  .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .copy-btn:hover { background: rgba(255,255,255,0.22); }
+  .search-results {
+    margin-bottom: 16px;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+  }
+  .footer-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  /* AI Assistant Drawer */
+  .ai-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.55);
+    z-index: 60;
+    backdrop-filter: blur(2px);
+  }
+  .ai-backdrop.open { display: block; }
+  .ai-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(100vw, 640px);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 70;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(105%);
+    transition: transform 0.25s ease;
+    box-shadow: -8px 0 30px rgba(0, 0, 0, 0.2);
+  }
+  .ai-drawer.open { transform: translateX(0); }
+  .ai-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .ai-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ai-header-title h2 { margin: 0; font-size: 16px; font-weight: 700; }
+  .ai-model-pill {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: Consolas, monospace;
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .ai-header-actions { display: flex; gap: 6px; align-items: center; }
+  .ai-settings {
+    display: none;
+    padding: 14px 18px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border);
+    gap: 10px;
+    flex-direction: column;
+  }
+  .ai-settings.open { display: flex; }
+  .ai-field label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .ai-field input {
+    width: 100%;
+    padding: 7px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 13px;
+    font-family: Consolas, monospace;
+  }
+  .ai-toolbar {
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--surface);
+  }
+  .ai-modes {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .ai-mode-btn {
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .ai-mode-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+  .ai-context-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .ai-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ai-msg {
+    max-width: 92%;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.55;
+    word-wrap: break-word;
+  }
+  .ai-msg.user {
+    align-self: flex-end;
+    background: var(--accent);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    white-space: pre-wrap;
+  }
+  .ai-msg.assistant {
+    align-self: flex-start;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    width: 100%;
+  }
+  .ai-msg.error {
+    align-self: flex-start;
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    color: var(--warn-text);
+    width: 100%;
+    white-space: pre-wrap;
+  }
+  .ai-msg-code-wrap {
+    position: relative;
+    margin: 8px 0;
+  }
+  .ai-msg-code-wrap .copy-btn {
+    top: 6px;
+    right: 6px;
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+  .ai-examples {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .ai-example-btn {
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  .ai-example-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ai-input-area {
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+  .ai-input-area textarea {
+    flex: 1;
+    min-height: 52px;
+    max-height: 160px;
+    resize: vertical;
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+  }
+  .ai-input-area textarea:focus {
+    border-color: var(--accent);
+    background: var(--surface);
+  }
+  @media (max-width: 640px) {
+    .ai-drawer { width: 100vw; }
+    .ai-header { padding: 10px 12px; }
+    .ai-toolbar, .ai-messages, .ai-input-area, .ai-settings { padding-left: 12px; padding-right: 12px; }
+    .ai-model-pill { max-width: 140px; }
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">R</div>
+      <div>
+        <h1>Интерактивный дашборд курса R</h1>
+        <p>Дни 1–3: таблицы, файлы, факторы, даты и графики</p>
+      </div>
+    </div>
+    <div class="topbar-controls">
+      <button class="btn mobile-menu-btn" id="mobileMenuBtn" aria-label="Открыть список уроков">&#9776; Уроки</button>
+      <div class="search-box">
+        <span class="search-icon">&#128269;</span>
+        <input id="searchInput" type="text" placeholder="Поиск (left_join, mutate, ymd...)" />
+      </div>
+      <button class="btn btn-primary" id="openAiBtn" title="Открыть ИИ-помощника">&#129302; ИИ-помощник</button>
+      <button class="btn" id="themeToggle" title="Переключить тему">&#127763; Тема</button>
+    </div>
+  </header>
+
+  <section class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Учебных дней</div>
+      <div class="stat-value" id="statDays">3</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Всего R-скриптов</div>
+      <div class="stat-value" id="statScripts">14</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Команд в словарях</div>
+      <div class="stat-value" id="statTerms">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Прогресс изучения</div>
+      <div class="stat-value" id="statProgress">0 / 14</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </section>
+
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+  <main class="layout">
+    <aside class="sidebar" id="sidebarDrawer">
+      <button class="btn sidebar-close-btn" id="sidebarCloseBtn">&times; Закрыть список</button>
+      <div class="day-pills" id="dayPills"></div>
+      <div id="sidebarList"></div>
+    </aside>
+    <section class="main-panel" id="mainPanel"></section>
+  </main>
+
+  <div class="ai-backdrop" id="aiBackdrop"></div>
+  <aside class="ai-drawer" id="aiDrawer" aria-label="ИИ-помощник по R">
+    <div class="ai-header">
+      <div class="ai-header-title">
+        <h2>&#129302; ИИ-помощник по R</h2>
+        <span class="ai-model-pill" id="aiModelBadge"></span>
+      </div>
+      <div class="ai-header-actions">
+        <button class="btn" id="aiSettingsToggle" title="Настройки API">&#9881; Настройки</button>
+        <button class="btn" id="aiClearBtn" title="Очистить историю">&#128465;</button>
+        <button class="btn" id="aiCloseBtn" title="Закрыть">&times;</button>
+      </div>
+    </div>
+
+    <div class="ai-settings" id="aiSettingsPanel">
+      <div class="ai-field">
+        <label for="aiBaseUrl">Base URL</label>
+        <input id="aiBaseUrl" type="text" />
+      </div>
+      <div class="ai-field">
+        <label for="aiApiKey">API Key</label>
+        <input id="aiApiKey" type="password" />
+      </div>
+      <div class="ai-field">
+        <label for="aiModelId">ID модели</label>
+        <input id="aiModelId" type="text" />
+      </div>
+      <div style="display:flex; gap:8px; justify-content:flex-end;">
+        <button class="btn" id="aiResetSettingsBtn">Сбросить по умолчанию</button>
+        <button class="btn btn-primary" id="aiSaveSettingsBtn">Сохранить</button>
+      </div>
+    </div>
+
+    <div class="ai-toolbar">
+      <div class="ai-modes" id="aiModes">
+        <button class="ai-mode-btn active" data-mode="solve">&#128221; Решить задачу</button>
+        <button class="ai-mode-btn" data-mode="debug">&#128030; Найти ошибку</button>
+        <button class="ai-mode-btn" data-mode="explain">&#128161; Объяснить код</button>
+      </div>
+      <label class="ai-context-check">
+        <input type="checkbox" id="aiIncludeLesson" checked />
+        <span id="aiLessonLabel">Учитывать текущий открытый урок</span>
+      </label>
+    </div>
+
+    <div class="ai-messages" id="aiMessages"></div>
+
+    <div class="ai-input-area">
+      <textarea id="aiInput" placeholder="Опишите задачу на R (например: отфильтруй рейсы за май с задержкой > 30 мин и посчитай среднее по аэропортам)..."></textarea>
+      <button class="btn btn-primary" id="aiSendBtn">Решить</button>
+    </div>
+  </aside>
+
+<script>
+const COURSE_DATA = [{"color":"#4f46e5","title":"День 1: Основы работы с таблицами","id":1,"subtitle":"tidyverse, dplyr: фильтрация, сортировка, выбор столбцов, вычисления, группировка","scripts":[{"id":"1.1","overview":"На момент анализа файл 1.1 Фильтры.R полностью пуст (0 байт) — в нём нет ни одной строки кода.\n\nСудя по названию, это вводный урок 1-го дня, посвящённый фильтрации строк в таблицах с помощью функции filter() из пакета dplyr (входит в tidyverse).","name":"1.1 Фильтры.R","lineCount":0,"walkthrough":[{"text":"Поскольку файл пуст, разбирать построчно нечего. Если вы откроете его в RStudio и запустите, ничего не произойдёт.","type":"text"}],"rawCode":"","dictionary":[{"term":"filter(таблица, условие)","details":["Что делает: Оставляет только строки, для которых условие верно","Простой пример: filter(flights, month == 1) — рейсы за январь"]},{"term":"==","details":["Что делает: Проверка «равно» (два знака =, не один!)","Простой пример: day == 15"]},{"term":"!=","details":["Что делает: Проверка «не равно»","Простой пример: dest != \"HNL\""]},{"term":"\u003e, \u003c, \u003e=, \u003c=","details":["Что делает: Больше, меньше, больше или равно, меньше или равно","Простой пример: arr_delay \u003e 120"]},{"term":"\u0026 или запятая ,","details":["Что делает: Логическое «И» (должны выполняться оба условия)","Простой пример: filter(flights, month == 1, day == 1)"]},{"term":"|","details":["Что делает: Логическое «ИЛИ» (достаточно одного из условий)","Простой пример: filter(flights, month == 11 | month == 12)"]},{"term":"%in%","details":["Что делает: Проверка вхождения в список значений","Простой пример: filter(flights, month %in% c(11, 12))"]},{"term":"is.na(x)","details":["Что делает: Проверка, является ли значение пустым (NA)","Простой пример: filter(flights, is.na(dep_time))"]}],"tag":"filter"},{"id":"1.2","overview":"Этот скрипт знакомит с сортировкой строк в таблице с помощью функции arrange().\nВ качестве учебного примера используется реальная таблица flights — данные о всех 336 776 авиарейсах, вылетевших из аэропортов Нью-Йорка в 2013 году.\n\nЧто вы научитесь делать:\n  - сортировать строки по возрастанию и убыванию значений;\n  - управлять положением пропущенных (пустых) значений NA;\n  - открывать таблицу для удобного просмотра в отдельном окне.","name":"1.2 Сортировка.R","lineCount":30,"walkthrough":[{"text":"1: library(nycflights13)","type":"code"},{"text":"Подключаем пакет с учебными данными. После этой строки в памяти становится доступна таблица flights.","type":"text"},{"text":"2: library(tidyverse)","type":"code"},{"text":"Подключаем набор инструментов для работы с данными (отсюда берутся функции arrange(), desc(), view() и др.).","type":"text"},{"text":"3: # сортировка по умолчанию идет от меньшего к большему значению\n4: rez \u003c- arrange(flights, dep_time)","type":"code"},{"text":"Сортируем таблицу flights по столбцу dep_time (фактическое время вылета) от меньшего к большему. Результат сохраняем в новую переменную rez. Сама таблица flights остаётся нетронутой.","type":"text"},{"text":"5: print(rez)","type":"code"},{"text":"Выводим первые строки таблицы rez в консоль, чтобы убедиться, что сортировка сработала.","type":"text"},{"text":"6: # сортировка от большему меньшему значению \"desc\"\n7: rez \u003c- arrange(flights, desc(dep_time))","type":"code"},{"text":"Теперь сортируем flights по тому же столбцу dep_time, но по убыванию — благодаря обёртке desc(dep_time). Новая таблица перезаписывает переменную rez.","type":"text"},{"text":"8: print(rez)","type":"code"},{"text":"Печатаем обновлённую таблицу rez в консоль.","type":"text"},{"text":"10: #значение NA в начало\n11: rez2 \u003c-arrange(flights, !is.na(dep_time), dep_time)","type":"code"},{"text":"По умолчанию arrange() всегда отправляет пустые значения (NA) в конец таблицы (и при сортировке по возрастанию, и по убыванию).\nЧтобы поставить NA в начало, используют хитрость с двумя условиями:\n1. Сначала сортируем по !is.na(dep_time). Для пустых ячеек это FALSE (в R считается как 0), а для заполненных — TRUE (1). Так как 0 меньше 1, все NA оказываются наверху.\n2. Затем внутри каждой группы строки сортируются по dep_time по возрастанию.","type":"text"},{"text":"12: rez2 \u003c-arrange(flights, c(1,(dep_time)), dep_time)","type":"code"},{"text":"  [!] Важное замечание: это экспериментальная или ошибочная строка из учебного занятия! Функция c(1, (dep_time)) склеивает число 1 со всеми значениями столбца dep_time, из-за чего длина списка становится на 1 больше числа строк таблицы — при выполнении R выдаст ошибку (length must be ... or 1). Ориентируйтесь на строку 11, она правильная.","type":"note"},{"text":"13: print(rez2)","type":"code"},{"text":"Вывод переменной rez2 в консоль (если строка 12 не выдала ошибку, напечатает результат строки 11).","type":"text"},{"text":"16: # Задание:\n17: # 1) рейсов с наибольшей задержкой прилета\n18: # 2) рейсов с наибольшим расстоянием\n19: # 3) рейсов с наименьшим расстоянием","type":"code"},{"text":"Условия практического задания: найти соответствующие рейсы с помощью сортировки.","type":"text"},{"text":"22: rez1 \u003c-arrange(flights, desc(arr_delay))\n23: print(rez1)","type":"code"},{"text":"Решение 1-го задания: сортируем flights по убыванию столбца arr_delay (задержка прилёта в минутах). В первых строках окажутся рейсы с самой большой задержкой.","type":"text"},{"text":"24: rez2 \u003c-arrange(flights, desc(distance))\n25: print(rez2)\n26: view(rez2)","type":"code"},{"text":"Решение 2-го задания: сортируем flights по убыванию distance (расстояние перелёта в милях), выводим в консоль и открываем таблицу в отдельной вкладке через view(rez2).","type":"text"},{"text":"27: rez3 \u003c-arrange(flights, distance)\n28: print(rez3)\n29: view(rez3)","type":"code"},{"text":"Решение 3-го задания: сортируем flights по возрастанию distance (без desc), чтобы сверху оказались самые короткие рейсы, и также выводим в консоль и в отдельную вкладку.","type":"text"}],"rawCode":"library(nycflights13)\r\nlibrary(tidyverse)\r\n# сортировка по умолчанию идет от меньшего к большему значению\r\nrez \u003c- arrange(flights, dep_time)\r\nprint(rez)\r\n# сортировка от большему меньшему значению \"desc\"\r\nrez \u003c- arrange(flights, desc(dep_time))\r\nprint(rez)    \r\n\r\n#значение NA в начало\r\nrez2 \u003c-arrange(flights, !is.na(dep_time), dep_time)\r\nrez2 \u003c-arrange(flights, c(1,(dep_time)), dep_time)\r\nprint(rez2)\r\n\r\n\r\n# Задание:\r\n# 1) рейсов с наибольшей задержкой прилета\r\n# 2) рейсов с наибольшим расстоянием \r\n# 3) рейсов с наименьшим расстоянием \r\n\r\n\r\nrez1 \u003c-arrange(flights, desc(arr_delay))\r\nprint(rez1)\r\nrez2 \u003c-arrange(flights, desc(distance))\r\nprint(rez2)\r\nview(rez2)\r\nrez3 \u003c-arrange(flights, distance)\r\nprint(rez3)\r\nview(rez3)\r\n","dictionary":[{"term":"#","details":["Что это и зачем нужно: Знак комментария. Всё, что написано после # в этой строке, R игнорирует — это заметки для человека","Аналогия из Excel: Заметка на полях"]},{"term":"library(пакет)","details":["Что это и зачем нужно: Подключает дополнительный набор готовых функций или данных","Аналогия из Excel: Включение надстройки в Excel"]},{"term":"nycflights13","details":["Что это и зачем нужно: Учебный пакет с таблицами о рейсах (flights), самолётах, аэропортах и погоде","Аналогия из Excel: Готовая книга Excel с данными"]},{"term":"tidyverse","details":["Что это и зачем нужно: Главный набор современных пакетов для работы с таблицами и графиками","Аналогия из Excel: Набор инструментов «Данные»"]},{"term":"\u003c-","details":["Что это и зачем нужно: Оператор присваивания («положи результат справа в переменную слева»). Читается как «записать в...»","Аналогия из Excel: Сохранить результат на новый лист"]},{"term":"arrange(таблица, столбец)","details":["Что это и зачем нужно: Переставляет строки таблицы по возрастанию значений указанного столбца. Исходная таблица не меняется","Аналогия из Excel: Сортировка «от А до Я» / «от меньшего к большему»"]},{"term":"desc(столбец)","details":["Что это и зачем нужно: Модификатор «по убыванию» (от английского descending), используется внутри arrange()","Аналогия из Excel: Сортировка «от большего к меньшему»"]},{"term":"NA","details":["Что это и зачем нужно: Обозначение отсутствующего (пустого) значения (Not Available)","Аналогия из Excel: Пустая ячейка"]},{"term":"is.na(x)","details":["Что это и зачем нужно: Проверяет, пустое ли значение (TRUE — пусто, FALSE — заполнено)","Аналогия из Excel: Функция ЕПУСТО()"]},{"term":"!","details":["Что это и зачем нужно: Логическое «НЕ» (переворачивает TRUE в FALSE и наоборот). !is.na(x) означает «НЕ пусто»","Аналогия из Excel: Отрицание"]},{"term":"c(...)","details":["Что это и зачем нужно: Объединяет несколько значений в один список (вектор)","Аналогия из Excel: Перечисление значений"]},{"term":"print(x)","details":["Что это и зачем нужно: Выводит содержимое переменной x в консоль (нижнее окно RStudio)","Аналогия из Excel: Предпросмотр в окне вывода"]},{"term":"view(x)","details":["Что это и зачем нужно: Открывает таблицу x в отдельной вкладке RStudio в виде привычной сетки","Аналогия из Excel: Открыть лист таблицы"]}],"tag":"arrange"},{"id":"1.3","overview":"Несмотря на название файла («Сортировка»), внутри на самом деле разбирается выбор и перестановка столбцов таблицы с помощью функции select().\n\nВ таблице flights 19 столбцов, и часто для работы нужны только некоторые из них. Функция select() позволяет оставить нужные столбцы, выкинуть лишние или поменять их порядок.","name":"1.3 Сортировка.R","lineCount":39,"walkthrough":[{"text":"1: library(nycflights13)\n2: library(tidyverse)","type":"code"},{"text":"Подключаем пакет с данными flights и пакет tidyverse (откуда берётся select()).","type":"text"},{"text":"3: # Функция select - выбор столбцов по имени\n4: rez \u003c- select(flights, month, day, year)\n5: print(rez)","type":"code"},{"text":"Из таблицы flights берём только три столбца: month, day и year (именно в таком порядке). Результат сохраняем в rez и печатаем в консоль.","type":"text"},{"text":"6: # выбор столбцов из промежутка (включая начало и конец промежутка)\n7: # rez2 \u003c- select(flights, day:dep_delay)\n8: # print(rez2)","type":"code"},{"text":"Закомментированный пример: двоеточие : выбирает все столбцы подряд, начиная с day и заканчивая dep_delay включительно. (Строки не выполняются, потому что в начале стоит #).","type":"text"},{"text":"9: # получение столбцов, которые не входят в указанный диапазон столбцов\n10: rez3 \u003c- select(flights, -(year:day))\n11: print(rez3)","type":"code"},{"text":"Знак минус - перед скобками (year:day) означает «взять все столбцы таблицы, кроме диапазона от year до day».","type":"text"},{"text":"13: # выбор всех столбцов, имена которых начинаются на \"arr\"\n14: rez4 \u003c- select(flights, starts_with(\"arr\"))\n15: print(rez4)","type":"code"},{"text":"Выбирает все столбцы, названия которых начинаются с \"arr\" (например, arr_time, arr_delay).","type":"text"},{"text":"17: # выбор всех столбцов, имена которых НЕ начинаются на \"arr\"\n18: rez5 \u003c- select(flights, -starts_with(\"arr\"))\n19: print(rez5)","type":"code"},{"text":"Минус перед starts_with(\"arr\") работает наоборот: оставляет все столбцы, названия которых не начинаются с \"arr\".","type":"text"},{"text":"21: # выбор всех столбцов, имена которых заканчиваются на \"e\"\n22: rez6 \u003c- select(flights, ends_with(\"e\"))\n23: print(rez6)","type":"code"},{"text":"Выбирает все столбцы, названия которых заканчиваются на букву \"e\" (например, dep_time, air_time, distance).","type":"text"},{"text":"25: # выбор всех столбцов, которых содержат последовательность \"arr\"\n26: rez7 \u003c- select(flights, contains(\"arr\"))\n27: print(rez7)","type":"code"},{"text":"Выбирает все столбцы, в названии которых встречается сочетание \"arr\" в любом месте (в начале, середине или конце — например, arr_time, arr_delay, carrier).","type":"text"},{"text":"29: # перемещение столбцов в начало фрейма\n30: rez \u003c- select(flights,  time_hour, air_time, everything())\n31: print(rez)","type":"code"},{"text":"Очень полезный приём: сначала ставим столбцы time_hour и air_time, а функция everything() дописывает следом все остальные столбцы, не дублируя уже указанные. В итоге ни один столбец не теряется, просто time_hour и air_time переезжают в самое начало таблицы.","type":"text"}],"rawCode":"library(nycflights13)\r\nlibrary(tidyverse)\r\n# Функция select - выбор столбцов по имени\r\nrez \u003c- select(flights, month, day, year)\r\nprint(rez)\r\n# выбор столбцов из промежутка (включая начало и конец промежутка)\r\n# rez2 \u003c- select(flights, day:dep_delay)\r\n# print(rez2)\r\n# получение столбцов, которые не входят в указанный диапазон столбцов\r\nrez3 \u003c- select(flights, -(year:day))\r\nprint(rez3)\r\n\r\n# выбор всех столбцов, имена которых начинаются на \"arr\"\r\nrez4 \u003c- select(flights, starts_with(\"arr\"))\r\nprint(rez4)\r\n\r\n# выбор всех столбцов, имена которых НЕ начинаются на \"arr\"\r\nrez5 \u003c- select(flights, -starts_with(\"arr\"))\r\nprint(rez5)\r\n\r\n# выбор всех столбцов, имена которых заканчиваются на \"e\"\r\nrez6 \u003c- select(flights, ends_with(\"e\"))\r\nprint(rez6)\r\n\r\n# выбор всех столбцов, которых содержат последовательность \"arr\"\r\nrez7 \u003c- select(flights, contains(\"arr\"))\r\nprint(rez7)\r\n\r\n# перемещение столбцов в начало фрейма\r\nrez \u003c- select(flights,  time_hour, air_time, everything())\r\nprint(rez)\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n","dictionary":[{"term":"select(таблица, ...)","details":["Что это и зачем нужно: Выбирает указанные столбцы из таблицы","Аналогия: Скрыть/удалить лишние колонки в Excel"]},{"term":"столбец1:столбец2","details":["Что это и зачем нужно: Диапазон столбцов: все столбцы от столбец1 до столбец2 включительно","Аналогия: Выделение колонок с B по F"]},{"term":"-(...) или -столбец","details":["Что это и зачем нужно: Минус перед именем или диапазоном означает исключить эти столбцы","Аналогия: Удалить выбранные колонки"]},{"term":"starts_with(\"текст\")","details":["Что это и зачем нужно: Помощник для select(): находит столбцы, чьи имена начинаются на \"текст\"","Аналогия: Поиск по маске текст*"]},{"term":"ends_with(\"текст\")","details":["Что это и зачем нужно: Находит столбцы, чьи имена заканчиваются на \"текст\"","Аналогия: Поиск по маске *текст"]},{"term":"contains(\"текст\")","details":["Что это и зачем нужно: Находит столбцы, чьи имена содержат \"текст\" в любом месте","Аналогия: Поиск по маске текст"]},{"term":"everything()","details":["Что это и зачем нужно: Обозначает «все остальные столбцы, которые ещё не были названы»","Аналогия: «А следом — всё остальное»"]}],"tag":"select"},{"id":"1.4","overview":"Этот скрипт учит создавать новые вычисляемые столбцы в таблице с помощью функций mutate() и transmute().\nСлово «мутация» (mutate) в R означает изменение таблицы путём добавления в неё новых колонок на основе формул.\n\nЧто вы научитесь делать:\n  - создавать уменьшенную копию таблицы для удобства работы;\n  - добавлять вычисляемые столбцы (аналог формул в столбцах Excel);\n  - использовать только что созданный столбец в следующей формуле внутри той же команды;\n  - получать таблицу только из новых столбцов (transmute());\n  - делить числа нацело и находить остаток от деления.","name":"1.4 Мутация.R","lineCount":26,"walkthrough":[{"text":"1: library(nycflights13)\n2: library(tidyverse)","type":"code"},{"text":"Подключаем пакет с таблицей flights и инструменты tidyverse.","type":"text"},{"text":"4: # на базе фрейма создадим его уменьшенную копию\n6: sml \u003c- select(flights, year:day, ends_with(\"delay\"), distance, air_time)\n7: print(sml)","type":"code"},{"text":"С помощью select() создаём компактную таблицу sml (от small), оставив только:\n  - дату (year:day — год, месяц, день),\n  - все столбцы задержек (ends_with(\"delay\") — dep_delay и arr_delay),\n  - расстояние (distance) и время в воздухе (air_time).","type":"text"},{"text":"10: # вычисление нового столбца\n11: rez \u003c-mutate(sml, gain=arr_delay-dep_delay, speed=distance/air_time*60)\n12: print(rez)","type":"code"},{"text":"Функция mutate() добавляет к таблице sml два новых столбца:\n  - gain (навёрстанное время) = задержка прилёта минус задержка вылета (arr_delay - dep_delay);\n  - speed (скорость в милях в час) = расстояние, делённое на время в минутах, умноженное на 60.\nВсе прежние столбцы таблицы sml при этом сохраняются, а новые появляются справа.","type":"text"},{"text":"14: # ссылка на новый столбец в процессе вычисления\n15: rez \u003c-mutate(sml, gain=arr_delay-dep_delay, hours=air_time/60, speed=distance/hours)\n16: print(rez)","type":"code"},{"text":"Показывает важную особенность mutate(): можно сразу ссылаться на столбец, который вы только что создали чуть левее в той же команде!\nЗдесь сначала вычисляется hours = air_time / 60 (время в часах), и тут же в следующем выражении speed = distance / hours используется этот новый столбец hours.","type":"text"},{"text":"19: # функция transmute  сохраняет только новые вычисленные столбцы\n20: rez \u003c-transmute(sml, gain=arr_delay-dep_delay, hours=air_time/60, speed=distance/hours)\n21: print(rez)","type":"code"},{"text":"transmute() работает точно так же, как mutate(), но в итоговой таблице rez оставляет только три новых столбца (gain, hours, speed), отбрасывая исходные столбцы sml.","type":"text"},{"text":"23: # Из столбца \"deep-time\" выделим ЧАСЫ (целое число, без округления) и МИНУТЫ (дробная часть, т.е. остаток от целого числа)\n24: rez \u003c-transmute(flights, dep_time, hour=dep_time %/% 60, minute=dep_time %% 60)\n25: print(rez)","type":"code"},{"text":"Пример разделения числа на «часы» и «минуты» (для столбца dep_time, где время вылета записано числом — например, 517 означает 05:17):\n  - dep_time — оставляем сам исходный столбец, просто указав его имя;\n  - hour = dep_time %/% 60 — деление нацело на 60 (примечание: если dep_time записано в формате ЧЧММ, то для отделения часов и минут математически точнее делить на 100, а не на 60, здесь показан сам принцип работы операторов %/% и %%);\n  - minute = dep_time %% 60 — остаток от деления на 60.","type":"text"}],"rawCode":"library(nycflights13)\r\nlibrary(tidyverse)\r\n\r\n# на базе фрейма создадим его уменьшенную копию\r\n\r\nsml \u003c- select(flights, year:day, ends_with(\"delay\"), distance, air_time)\r\nprint(sml)\r\n\r\n\r\n# вычисление нового столбца\r\nrez \u003c-mutate(sml, gain=arr_delay-dep_delay, speed=distance/air_time*60)\r\nprint(rez)\r\n\r\n# ссылка на новый столбец в процессе вычисления\r\nrez \u003c-mutate(sml, gain=arr_delay-dep_delay, hours=air_time/60, speed=distance/hours)\r\nprint(rez)\r\n\r\n\r\n# функция transmute  сохраняет только новые вычисленные столбцы\r\nrez \u003c-transmute(sml, gain=arr_delay-dep_delay, hours=air_time/60, speed=distance/hours)\r\nprint(rez)\r\n\r\n# Из столбца \"deep-time\" выделим ЧАСЫ (целое число, без округления) и МИНУТЫ (дробная часть, т.е. остаток от целого числа)\r\nrez \u003c-transmute(flights, dep_time, hour=dep_time %/% 60, minute=dep_time %% 60)\r\nprint(rez)\r\n","dictionary":[{"term":"mutate(таблица, новый = формула)","details":["Что это и зачем нужно: Добавляет новые столбцы в конец таблицы, сохраняя все старые","Аналогия / пример: В Excel: дописать справа столбец с формулой"]},{"term":"transmute(таблица, новый = формула)","details":["Что это и зачем нужно: Создаёт новые столбцы и удаляет все старые (остаются только вычисленные)","Аналогия / пример: Выгрузить на новый лист только столбцы с результатами"]},{"term":"=, -, /, *","details":["Что это и зачем нужно: Внутри mutate() знак = задаёт имя нового столбца (имя = формула). А -, /, * — обычные вычитание, деление и умножение","Аналогия / пример: Обычная арифметика"]},{"term":"%/%","details":["Что это и зачем нужно: Целочисленное деление (деление без дробной части)","Аналогия / пример: 130 %/% 60 даст 2"]},{"term":"%%","details":["Что это и зачем нужно: Остаток от деления","Аналогия / пример: 130 %% 60 даст 10"]}],"tag":"mutate"},{"id":"1.5","overview":"Несмотря на название («Мутация»), этот скрипт посвящён свёртыванию данных и группировке (summarise() и group_by()), а также знакомству с конвейером %\u003e% (трубой) и построением графика через ggplot().\n\nБольшая часть кода в этом файле закомментирована (#) — это пошаговые примеры, которые преподаватель показывал по очереди. Активная (незакомментированная) часть в конце демонстрирует разгруппировку (ungroup()).","name":"1.5 Мутация.R","lineCount":82,"walkthrough":[{"text":"Подключение пакетов (активный код)","type":"heading"},{"text":"1: library(nycflights13)\n2: library(tidyverse)","type":"code"},{"text":"Подключаем учебные данные flights и пакет tidyverse.","type":"text"},{"text":"Блок 1: Свёртывание в одну строку и базовая группировка (закомментирован)","type":"heading"},{"text":"4: # # функция summarize свертывает фреймы в одну строку\n5: # rez \u003c-summarize(flights, delay=mean(dep_delay, na.rm))\n6: # print(rez)","type":"code"},{"text":"Считает среднюю задержку вылета по всей таблице flights.\n(Примечание: в строке 5 опечатка преподавателя — написано просто na.rm вместо na.rm = TRUE; при раскомментировании R выдаст ошибку, так как переменная na.rm не определена).","type":"text"},{"text":"8: # # Произведем группировку данных\n9: # by_day \u003c- group_by(flights, year, month, day)\n10: # print(by_day)\n11: # rez \u003c-summarise(by_day, delay=mean(dep_delay, na.rm=TRUE))\n12: # print(rez)","type":"code"},{"text":"Группируем рейсы по дате (year, month, day), затем summarise() считает среднюю задержку вылета delay для каждого дня в году (получается 365 строк).","type":"text"},{"text":"Блок 2: Зависимость задержки от расстояния + график (закомментирован)","type":"heading"},{"text":"15: # # Определение, зависят ли задержки от расстояния полета\n16: # by_dest \u003c- group_by(flights, dest) - #группировка по пунктам назначения\n17: # delay \u003c- summarise(by_dest, count =n(),\n18: #                    dist=mean(distance, na.rm=TRUE), #- отбрасываем нулевые значения\n19: #                    delay=mean(arr_delay, na.rm = TRUE) #- отбрасываем нулевые значения\n20: #                    )\n21: # print(delay)\n22: # delay \u003c- filter(delay, count \u003e20, dest !=\"HNL\")\n23: # print(delay)\n24: # graph \u003c- ggplot(data=delay, mapping=aes(x=dist, y=delay))+\n25: #   geom_point(aes(size=count), alpha=1/3)+\n26: #   geom_smooth(se=FALSE)\n27: #\n28: # print(graph)","type":"code"},{"text":"Классический разбор по шагам:\n  - Группируем рейсы по аэропорту прилёта dest. (В строке 16 лишний дефис - перед # — при раскомментировании его нужно убрать).\n  - Для каждого аэропорта считаем: количество рейсов count = n(), среднее расстояние dist и среднюю задержку delay.\n  - Фильтруем: оставляем аэропорты, куда было больше 20 рейсов (count \u003e 20), и убираем Гонолулу (dest != \"HNL\"), который сильно выбивается по дальности.\n  - Строим график ggplot: по оси X — расстояние dist, по оси Y — задержка delay, размер точки пропорционален числу рейсов (size = count), alpha = 1/3 делает точки полупрозрачными, geom_smooth(se = FALSE) рисует плавную линию тренда без серой тени доверительного интервала.","type":"text"},{"text":"Блок 3: То же самое, но через конвейер %\u003e% (закомментирован)","type":"heading"},{"text":"31: # delays \u003c- flights %\u003e%\n32: #           group_by(dest) %\u003e%\n33: #           summarise(count=n(),dist=mean(distance, na.rm=TRUE),\n34: #                     delay=mean(arr_delay, na.rm=TRUE)) %\u003e%\n35: #           filter(count \u003e 20, dest !=\"HNL\")\n36: # print(delays)","type":"code"},{"text":"Та же логика, записанная красиво и без промежуточной переменной by_dest с помощью оператора %\u003e%: «взять flights, сгруппировать по dest, посчитать сводку, отфильтровать».\n(Ниже в строках 37–41 строится точно такой же график).","type":"text"},{"text":"44: # rez \u003c- flights %\u003e%\n45: #        group_by(year, month, day) %\u003e%\n46: #        summarise(meam=mean(dep_delay))\n47: # print(rez)","type":"code"},{"text":"Демонстрация проблемы без na.rm = TRUE: если среди рейсов за день есть хотя бы один отменённый (с NA вместо времени задержки), то mean(dep_delay) вернёт NA для всего дня.","type":"text"},{"text":"Блок 4: Удаление отменённых рейсов (закомментирован)","type":"heading"},{"text":"50: # # Удалим из набора данных все отмеененные рейсы ( значение NA)\n51: # not_cancelled \u003c- flights %\u003e%\n52: #                  filter(!is.na(dep_delay), !is.na(arr_delay))\n53: # print(not_cancelled)","type":"code"},{"text":"Оставляем только состоявшиеся рейсы, у которых заполнены и задержка вылета, и задержка прилёта.","type":"text"},{"text":"56: # # Средняя задержка и средняя положительная задержка\n57: # rez \u003c- not_cancelled %\u003e%\n58: #       group_by(year, month, day) %\u003e%\n59: #       summarise(avg_delay=mean(arr_delay), avg_2=mean(arr_delay[arr_delay\u003e0]))\n60: # print(rez)","type":"code"},{"text":"Считаем по дням: общую среднюю задержку (avg_delay) и среднюю задержку только среди опоздавших рейсов (arr_delay[arr_delay \u003e 0]).","type":"text"},{"text":"Блок 5: Разгруппировка ungroup() (активный код!)","type":"heading"},{"text":"63: # разгруппировка\n64: daily \u003c- group_by(flights,year,month, arr_delay)\n65: print(daily)","type":"code"},{"text":"Создаём сгруппированную таблицу daily (группировка по году, месяцу и задержке прилёта).","type":"text"},{"text":"67: daily2 \u003c- daily %\u003e%\n68:           ungroup()\n69: print(daily2)","type":"code"},{"text":"Снимаем группировку с помощью ungroup() и сохраняем результат в daily2.","type":"text"},{"text":"71: daily_distance \u003c- summarise(daily,sum=sum(distance, na.rm=TRUE))\n72: print(daily_distance)","type":"code"},{"text":"Считаем сумму расстояний по сгруппированной таблице daily — получаем тысячи строк (отдельная сумма для каждой уникальной комбинации year, month, arr_delay).","type":"text"},{"text":"73: daily_distance2 \u003c- summarise(daily2,sum=sum(distance, na.rm=TRUE))\n74: print(daily_distance2)","type":"code"},{"text":"Считаем сумму расстояний по разгруппированной таблице daily2 — получаем ровно одну строку с общей суммой расстояний всех рейсов.","type":"text"}],"rawCode":"library(nycflights13)\r\nlibrary(tidyverse)\r\n\r\n# # функция summarize свертывает фреймы в одну строку\r\n# rez \u003c-summarize(flights, delay=mean(dep_delay, na.rm))\r\n# print(rez)\r\n# \r\n# # Произведем группировку данных\r\n# by_day \u003c- group_by(flights, year, month, day)\r\n# print(by_day)\r\n# rez \u003c-summarise(by_day, delay=mean(dep_delay, na.rm=TRUE))\r\n# print(rez)\r\n# \r\n# \r\n# # Определение, зависят ли задержки от расстояния полета\r\n# by_dest \u003c- group_by(flights, dest) - #группировка по пунктам назначения\r\n# delay \u003c- summarise(by_dest, count =n(),\r\n#                    dist=mean(distance, na.rm=TRUE), #- отбрасываем нулевые значения\r\n#                    delay=mean(arr_delay, na.rm = TRUE) #- отбрасываем нулевые значения\r\n#                    )\r\n# print(delay)\r\n# delay \u003c- filter(delay, count \u003e20, dest !=\"HNL\")\r\n# print(delay)\r\n# graph \u003c- ggplot(data=delay, mapping=aes(x=dist, y=delay))+\r\n#   geom_point(aes(size=count), alpha=1/3)+\r\n#   geom_smooth(se=FALSE)\r\n# \r\n# print(graph)\r\n# \r\n# \r\n# delays \u003c- flights %\u003e%\r\n#           group_by(dest) %\u003e% \r\n#           summarise(count=n(),dist=mean(distance, na.rm=TRUE),\r\n#                     delay=mean(arr_delay, na.rm=TRUE)) %\u003e%\r\n#           filter(count \u003e 20, dest !=\"HNL\")\r\n# print(delays)\r\n# graph \u003c- ggplot(data=delays, mapping=aes(x=dist, y=delay))+\r\n#   geom_point(aes(size=count), alpha=1/3)+\r\n#   geom_smooth(se=FALSE)\r\n# \r\n# print(graph)\r\n# \r\n# \r\n# rez \u003c- flights %\u003e%\r\n#        group_by(year, month, day) %\u003e%\r\n#        summarise(meam=mean(dep_delay))\r\n# print(rez)\r\n  \r\n\r\n# # Удалим из набора данных все отмеененные рейсы ( значение NA)\r\n# not_cancelled \u003c- flights %\u003e%\r\n#                  filter(!is.na(dep_delay), !is.na(arr_delay))\r\n# print(not_cancelled)\r\n# \r\n# \r\n# # Средняя задержка и средняя положительная задержка\r\n# rez \u003c- not_cancelled %\u003e% \r\n#       group_by(year, month, day) %\u003e% \r\n#       summarise(avg_delay=mean(arr_delay), avg_2=mean(arr_delay[arr_delay\u003e0]))         \r\n# print(rez)\r\n  \r\n  \r\n# разгруппировка  \r\ndaily \u003c- group_by(flights,year,month, arr_delay)\r\nprint(daily)\r\n\r\ndaily2 \u003c- daily %\u003e%\r\n          ungroup()\r\nprint(daily2)\r\n  \r\ndaily_distance \u003c- summarise(daily,sum=sum(distance, na.rm=TRUE))\r\nprint(daily_distance)\r\ndaily_distance2 \u003c- summarise(daily2,sum=sum(distance, na.rm=TRUE))\r\nprint(daily_distance2)\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n","dictionary":[{"term":"summarise() / summarize()","details":["Что это и зачем нужно: «Сворачивает» таблицу в одну итоговую строку (или по одной строке на группу). Оба написания работают одинаково","Аналогия: Итоговая строка в сводной таблице"]},{"term":"group_by(таблица, столбцы)","details":["Что это и зачем нужно: Делит таблицу на логические группы по значениям указанных столбцов. Сама таблица внешне не меняется, но summarise() будет считать итоги отдельно для каждой группы","Аналогия: Сводная таблица (Pivot Table) в Excel"]},{"term":"ungroup()","details":["Что это и зачем нужно: Снимает группировку, чтобы дальнейшие расчёты шли снова по всей таблице целиком","Аналогия: Убрать группировку в сводной таблице"]},{"term":"mean(x, na.rm = TRUE)","details":["Что это и зачем нужно: Вычисляет среднее арифметическое. na.rm = TRUE означает «игнорировать пустые ячейки NA»","Аналогия: СРЗНАЧ()"]},{"term":"sum(x, na.rm = TRUE)","details":["Что это и зачем нужно: Сумма значений (с игнорированием NA)","Аналогия: СУММ()"]},{"term":"n()","details":["Что это и зачем нужно: Подсчитывает количество строк в группе","Аналогия: СЧЁТ()"]},{"term":"%\u003e%","details":["Что это и зачем нужно: Оператор-труба (pipe). Берёт результат слева и передаёт его первым аргументом в функцию справа. Позволяет писать цепочку действий сверху вниз без лишних переменных","Аналогия: Конвейер: «возьми таблицу, затем сгруппируй, затем посчитай»"]},{"term":"ggplot(...)","details":["Что это и зачем нужно: Строит графики по слоям (координаты + точки geom_point + сглаженная линия geom_smooth)","Аналогия: Мастер диаграмм"]}],"tag":"summarise"}]},{"color":"#0891b2","title":"День 2: Фреймы, файлы и объединение таблиц","id":2,"subtitle":"tibble, readr, data.table, readxl, openxlsx, *_join","scripts":[{"id":"2.1","overview":"Этот скрипт показывает, как использовать группировку (group_by) в паре с фильтрацией (filter) — без свёртывания таблицы в итоги.\n\nОбычно group_by() используют вместе с summarise() (чтобы посчитать среднее или сумму), но в паре с filter() можно:\n  - найти топ-N худших или лучших записей внутри каждой группы (например, 9 самых задержанных рейсов за каждый день);\n  - оставить только крупные группы, отбросив редкие (например, только популярные аэропорты с количеством рейсов больше 300).","name":"2.1 Группировка.R","lineCount":19,"walkthrough":[{"text":"1: library(nycflights13)\n2: library(tidyverse)","type":"code"},{"text":"Подключаем пакет с таблицей flights и инструменты tidyverse.","type":"text"},{"text":"Закомментированный пример: поиск худших рейсов в каждом дне","type":"heading"},{"text":"5: # # на базе фрейма создадим его уменьшен копию\n6: # snl \u003c- select(flights, year:day, ends_with(\"delay\"), distance, air_time)\n7: # print(snl)","type":"code"},{"text":"Выбираем только нужные столбцы (дату, задержки, расстояние и время в полёте) и сохраняем в snl.","type":"text"},{"text":"9: # # найти члены каждой группы, имеющие наихудшие показатели (задержка)\n10: # rez \u003c- snl %\u003e% group_by(year, month, day) %\u003e% filter(rank(desc(arr_delay)) \u003c 10)\n11: # print(rez)","type":"code"},{"text":"Как это работает шаг за шагом:\n1. snl %\u003e% group_by(year, month, day) — разбивает все рейсы по дням года.\n2. filter(rank(desc(arr_delay)) \u003c 10) — внутри каждого дня ранжирует рейсы от самой большой задержки arr_delay к самой маленькой (desc) и оставляет только те, у которых ранг меньше 10 (то есть топ-9 самых больших задержек каждого дня).","type":"text"},{"text":"Активный код: отбор популярных направлений","type":"heading"},{"text":"14: # найти все группы, которым соответствует превышение порогового значения\n15: #группировка по аэропортам#\n16: # Убрали аэропорты, у котор кол-во рейсов меньше 300\n18: rez \u003c- flights %\u003e% group_by(dest) %\u003e% filter(n() \u003e 300) #отбор только тех аэропортов, у котор рейсов более 300\n19: print(rez)","type":"code"},{"text":"Что происходит в строке 18:\n1. flights %\u003e% group_by(dest) — группируем все 336 776 рейсов по аэропорту прилёта (dest).\n2. filter(n() \u003e 300) — для каждого аэропорта считается количество рейсов n(). Если в этот аэропорт было больше 300 рейсов за год, все его рейсы остаются в таблице rez; если 300 или меньше — отбрасываются.\n3. Строка 19 выводит получившуюся таблицу в консоль. (Обратите внимание: таблица rez остаётся сгруппированной по dest, если далее не вызвать ungroup()).","type":"text"}],"rawCode":"library(nycflights13)\r\nlibrary(tidyverse)\r\n\r\n\r\n# # на базе фрейма создадим его уменьшен копию\r\n# snl \u003c- select(flights, year:day, ends_with(\"delay\"), distance, air_time)\r\n# print(snl)\r\n# \r\n# # найти члены каждой группы, имеющие наихудшие показатели (задержка)\r\n# rez \u003c- snl %\u003e% group_by(year, month, day) %\u003e% filter(rank(desc(arr_delay)) \u003c 10)\r\n# print(rez)\r\n\r\n\r\n# найти все группы, которым соответствует превышение порогового значения\r\n#группировка по аэропортам#\r\n# Убрали аэропорты, у котор кол-во рейсов меньше 300\r\n\r\nrez \u003c- flights %\u003e% group_by(dest) %\u003e% filter(n() \u003e 300) #отбор только тех аэропортов, у котор рейсов более 300\r\nprint(rez)","dictionary":[{"term":"group_by(таблица, ...)","details":["Что это и зачем нужно: Делит строки таблицы на группы по значениям столбцов","Простой пример: Разложить карточки по стопкам по дате или аэропорту"]},{"term":"filter(условие)","details":["Что это и зачем нужно: Оставляет только те строки, для которых условие истинно (TRUE). Если таблица сгруппирована, условие проверяется внутри каждой группы отдельно","Простой пример: Отобрать нужные строки"]},{"term":"rank(x)","details":["Что это и зачем нужно: Присваивает каждому значению его место (ранг) по возрастанию (1 — самое маленькое)","Простой пример: rank(c(10, 30, 20)) → 1, 3, 2"]},{"term":"desc(x)","details":["Что это и зачем нужно: Переворачивает порядок (чтобы ранг 1 достался самому большому значению)","Простой пример: Рейтинг от максимума к минимуму"]},{"term":"n()","details":["Что это и зачем нужно: Возвращает количество строк в текущей группе (работает без аргументов внутри filter(), mutate(), summarise())","Простой пример: Сколько рейсов в этот аэропорт"]},{"term":"%\u003e%","details":["Что это и зачем нужно: Передаёт результат предыдущего шага в следующий","Простой пример: Конвейер команд"]}],"tag":"group_by"},{"id":"2.2","overview":"Этот скрипт объясняет, что такое фрейм данных (tibble) — основной тип таблиц в современном R (tidyverse), чем он удобнее классического data.frame, как создавать таблицы вручную и как доставать из них отдельные столбцы.\n\nЧто вы научитесь делать:\n  - преобразовывать обычную таблицу в tibble;\n  - создавать таблицу с нуля по столбцам (в том числе с вычисляемыми столбцами и нестандартными именами);\n  - извлекать отдельный столбец как обычный список (вектор) разными способами: [[ ]], $, . и pull().","name":"2.2 Фреймы .R","lineCount":35,"walkthrough":[{"text":"1: library(tidyverse)","type":"code"},{"text":"Подключаем пакет tidyverse (отсюда берутся tibble, as_tibble, pull, %\u003e%).","type":"text"},{"text":"Создание tibble из готовой таблицы","type":"heading"},{"text":"6: new_iris \u003c- as_tibble(iris) #преобразовали в новый тип фрейма, что позволяет более удобно работать (более современный тип фрейма)\n7: print(new_iris)","type":"code"},{"text":"Встроенная таблица iris имеет старый формат data.frame. Функция as_tibble() превращает её в tibble, и при print(new_iris) R выведет только первые 10 строк, размер таблицы и типы каждого столбца (\u003cdbl\u003e, \u003cfct\u003e).","type":"text"},{"text":"Создание tibble с вычислением на лету","type":"heading"},{"text":"10: df \u003c-tibble(x=1:5, y=1, z=x^2+y)\n11: print(df)","type":"code"},{"text":"Создаём таблицу df из 5 строк и 3 столбцов:\n  - x = 1:5 — числа 1, 2, 3, 4, 5;\n  - y = 1 — число 1 автоматически растягивается на все 5 строк;\n  - z = x^2 + y — сразу использует только что созданные x и y (^ — возведение в степень). Получатся значения 2, 5, 10, 17, 26.","type":"text"},{"text":"Нестандартные имена столбцов","type":"heading"},{"text":"14: df \u003c-tibble(`:)`=\"smile\", ` `=\"space\", `2000`=\"number\")\n15: print(df)","type":"code"},{"text":"Обычно имена столбцов не могут начинаться с цифры или содержать пробелы и спецсимволы. Но если обернуть имя в обратные кавычки   (на клавиатуре это клавиша Ё в английской раскладке), то можно назвать столбец даже смайликом :), пробелом   или числом 2000.","type":"text"},{"text":"Извлечение столбца из таблицы","type":"heading"},{"text":"21: df \u003c- tibble(x=runif(5), y=rnorm(5))\n22: print(df)","type":"code"},{"text":"Создаём таблицу df из 5 строк со случайными числами в столбцах x и y.","type":"text"},{"text":"23: print(df[[1]]) #выводит указанный номер столбца\n24: print(df$x)    #выводит указанный номер столбца","type":"code"},{"text":"Обе строки делают одно и то же — достают первый столбец x в виде обычного вектора (одномерного списка чисел):\n  - df[[1]] — обращение по номеру столбца (1-й столбец);\n  - df$x — обращение по имени столбца через знак $.","type":"text"},{"text":"Извлечение столбца внутри конвейера %\u003e%","type":"heading"},{"text":"28: print(df %\u003e% .$x)  # \".\" означает обращение к текущему каналу\n29: print(df %\u003e% .[[1]]) #обращение по имени нужно взять в двойные кавычки [[]]\n30: print(df %\u003e% .[[\"x\"]])\n31: print(df %\u003e% pull(x)) # pull() = «вытащи столбец как вектор»","type":"code"},{"text":"Когда таблица передаётся по трубе %\u003e%, чтобы применить $ или [[]], нужно указать точку . — она подставляет на своё место таблицу df:\n  - df %\u003e% .$x — достать столбец x;\n  - df %\u003e% .[[1]] — достать 1-й столбец по индексу;\n  - df %\u003e% .[[\"x\"]] — достать столбец x по имени в кавычках;\n  - df %\u003e% pull(x) — самый читаемый и рекомендуемый в tidyverse способ вытащить столбец x (здесь точка не нужна, так как pull() — обычная функция).","type":"text"}],"rawCode":"library(tidyverse)\r\n\r\n# создание tible-фрейма\r\n# 1 преобразовать существующий фрейм\r\n\r\nnew_iris \u003c- as_tibble(iris) #преобразовали в новый тип фрейма, что позволяет более удобно работать (более современный тип фрейма)\r\nprint(new_iris)\r\n\r\n# 2 заполнение фрейма вычисленными значениями\r\ndf \u003c-tibble(x=1:5, y=1, z=x^2+y)\r\nprint(df)\r\n\r\n#создание фрейма с нестандартными именами столбцов\r\ndf \u003c-tibble(`:)`=\"smile\", ` `=\"space\", `2000`=\"number\")\r\nprint(df)\r\n\r\n\r\n#извлечение поднабора из фрейма\r\n# 1: [] - доступ к элементу по имени и по индексу\r\n# 2: $ - доступ по имени\r\ndf \u003c- tibble(x=runif(5), y=rnorm(5))\r\nprint(df)\r\nprint(df[[1]]) #выводит указанный номер столбца\r\nprint(df$x)    #выводит указанный номер столбца\r\n\r\n# извлечение поднабора в канале\r\n\r\nprint(df %\u003e% .$x)  # \".\" означает обращение к текущему каналу\r\nprint(df %\u003e% .[[1]]) #обращение по имени нужно взять в двойные кавычки [[]]\r\nprint(df %\u003e% .[[\"x\"]])\r\nprint(df %\u003e% pull(x)) # pull() = «вытащи столбец как вектор»\r\n\r\n\r\n\r\n","dictionary":[{"term":"tibble(...)","details":["Что это и зачем нужно: Создаёт современную таблицу (tibble). В отличие от старого data.frame, красиво печатается в консоли (показывает типы столбцов и не вываливает тысячи строк на экран)","Пояснение для новичка: Умная таблица"]},{"term":"as_tibble(таблица)","details":["Что это и зачем нужно: Превращает старую таблицу (data.frame) в современный tibble","Пояснение для новичка: Конвертер формата таблицы"]},{"term":"iris","details":["Что это и зачем нужно: Встроенный в R классический учебный набор данных (150 замеров цветков ириса)","Пояснение для новичка: Готовая тренировочная таблица"]},{"term":"имя (обратные кавычки)","details":["Что это и зачем нужно: Позволяют использовать в качестве имени столбца пробелы, смайлики или цифры","Пояснение для новичка: Кавычки-защитники для странных имён"]},{"term":"1:5","details":["Что это и зачем нужно: Последовательность целых чисел от 1 до 5 (1, 2, 3, 4, 5)","Пояснение для новичка: Быстрая нумерация"]},{"term":"runif(5)","details":["Что это и зачем нужно: Генерирует 5 случайных чисел от 0 до 1 (равномерное распределение)","Пояснение для новичка: Генератор случайных чисел"]},{"term":"rnorm(5)","details":["Что это и зачем нужно: Генерирует 5 случайных чисел из нормального распределения (вокруг 0)","Пояснение для новичка: Генератор случайных чисел"]},{"term":"df$x","details":["Что это и зачем нужно: Достаёт столбец x из таблицы df по имени","Пояснение для новичка: «Дай мне колонку x из таблицы df»"]},{"term":"df[[1]] или df[[\"x\"]]","details":["Что это и зачем нужно: Достаёт столбец по номеру (1 — первый столбец) или по имени в кавычках","Пояснение для новичка: То же самое, но в квадратных скобках"]},{"term":". (точка)","details":["Что это и зачем нужно: Внутри цепочки %\u003e% обозначает текущую таблицу, пришедшую слева по трубе","Пояснение для новичка: Местоимение «оно / эта таблица»"]},{"term":"pull(таблица, столбец)","details":["Что это и зачем нужно: Современный и самый понятный способ вытащить столбец из таблицы в виде обычного списка (вектора)","Пояснение для новичка: «Вытяни колонку»"]}],"tag":"tibble"},{"id":"2.3","overview":"Этот скрипт учит загружать данные из CSV-файлов (текстовых таблиц, где значения разделены запятой или точкой с запятой).\n\nГлавная идея урока — показать три разных инструмента для чтения CSV и сравнить, как они справляются с файлами разного размера: от крошечного (123 байта) до огромного (260 МБ, более 800 тысяч строк).\n\n  [!] Важно про пути к файлам: в скрипте прописаны пути вида \u0027D:/Mogilev/2день/...\u0027 (с компьютера преподавателя). Если запускать скрипт в текущей папке проекта (Курсы R/2день), R скажет, что файл не найден. Нужно либо открыть проект 2день.Rproj и заменить пути на короткие (например, \u0027test.csv\u0027), либо указать ваш реальный путь на диске.","name":"2.3 csv-файл.R","lineCount":44,"walkthrough":[{"text":"1: library(readr)\n2: library(data.table)","type":"code"},{"text":"Подключаем пакет readr (для read_csv) и пакет data.table (для сверхбыстрой fread).","type":"text"},{"text":"Чтение маленького файла и настройка параметров","type":"heading"},{"text":"3: # чтение csv-файла\n4: # при чтении csv файла по умолчанию испол-ся разделитель: ;\n5: myData \u003c- read.csv(\u0027D:/Mogilev/2день/test.csv\u0027)\n6: print(myData)","type":"code"},{"text":"Читаем файл test.csv базовой функцией read.csv().\n(Примечание: в комментарии в строке 4 неточность — по умолчанию read.csv() использует запятую ,, а для точки с запятой ; в R есть read.csv2() или параметр sep = \u0027;\u0027 как в строке 9).","type":"text"},{"text":"8: # с помощью параметра sep можно указать нестандартный разделитель\n9: myData \u003c- read.csv(\u0027D:/Mogilev/2день/test.csv\u0027, sep=\u0027;\u0027)\n10: print(myData)","type":"code"},{"text":"Явно указываем, что столбцы в test.csv разделены точкой с запятой (sep = \u0027;\u0027), чтобы данные корректно разложились по колонкам.","type":"text"},{"text":"12: # по умолчанию первая строка файла берется как название столбцов, с пом параметра header\n13: # можно 1-ю строку не брать как название столбцов\n14: myData \u003c-read.csv(\u0027D:/Mogilev/2день/test.csv\u0027, sep=\u0027;\u0027, header=FALSE)\n15: print(myData)","type":"code"},{"text":"Указываем header = FALSE — теперь даже первая строка воспринимается как обычная строка данных, а столбцам даются технические имена V1, V2, и т.д.","type":"text"},{"text":"Сравнение скорости на среднем и огромном файлах","type":"heading"},{"text":"18: # Чтение среднего размера csv-файла\n19: myData2 \u003c-read.csv(\u0027D:/Mogilev/2день/heroes_information.csv\u0027)\n20: print(myData2)","type":"code"},{"text":"Читаем файл про супергероев (~46 КБ, несколько сотен строк) стандартной функцией read.csv().","type":"text"},{"text":"22: # Чтение большого размера csv-файла\n23: myData3 \u003c-read.csv(\u0027D:/Mogilev/2день/amazon-fashion-800k+-user-reviews-dataset.csv\u0027)\n24: print(myData3)","type":"code"},{"text":"Читаем большой датасет отзывов Amazon (~260 МБ) базовой функцией read.csv(). На таком объёме она работает заметно долго и потребляет много памяти.","type":"text"},{"text":"26: # Чтение большого размера csv-файла с помощью библиотеки reader\n27: myData4 \u003c-read_csv(\u0027D:/Mogilev/2день/amazon-fashion-800k+-user-reviews-dataset.csv\u0027)\n28: print(myData4)","type":"code"},{"text":"Читаем тот же большой файл функцией read_csv() из пакета readr (в комментарии опечатка «reader», правильное имя пакета — readr). Она работает быстрее и выводит прогресс чтения.","type":"text"},{"text":"30: # Чтение большого размера csv-файла с помощью библиотеки data.table\n31: myData5 \u003c-fread(\u0027D:/Mogilev/2день/amazon-fashion-800k+-user-reviews-dataset.csv\u0027)\n32: print(myData5)","type":"code"},{"text":"Читаем тот же файл функцией fread() из data.table — это самый быстрый способ загрузки больших таблиц в R.","type":"text"}],"rawCode":"library(readr)\r\nlibrary(data.table)\r\n# чтение csv-файла\r\n# при чтении csv файла по умолчанию испол-ся разделитель: ;\r\nmyData \u003c- read.csv(\u0027D:/Mogilev/2день/test.csv\u0027)\r\nprint(myData)\r\n\r\n# с помощью параметра sep можно указать нестандартный разделитель\r\nmyData \u003c- read.csv(\u0027D:/Mogilev/2день/test.csv\u0027, sep=\u0027;\u0027)\r\nprint(myData)\r\n\r\n# по умолчанию первая строка файла берется как название столбцов, с пом параметра header\r\n# можно 1-ю строку не брать как название столбцов\r\nmyData \u003c-read.csv(\u0027D:/Mogilev/2день/test.csv\u0027, sep=\u0027;\u0027, header=FALSE)\r\nprint(myData)\r\n\r\n\r\n# Чтение среднего размера csv-файла\r\nmyData2 \u003c-read.csv(\u0027D:/Mogilev/2день/heroes_information.csv\u0027)\r\nprint(myData2)\r\n\r\n# Чтение большого размера csv-файла\r\nmyData3 \u003c-read.csv(\u0027D:/Mogilev/2день/amazon-fashion-800k+-user-reviews-dataset.csv\u0027)\r\nprint(myData3)\r\n\r\n# Чтение большого размера csv-файла с помощью библиотеки reader\r\nmyData4 \u003c-read_csv(\u0027D:/Mogilev/2день/amazon-fashion-800k+-user-reviews-dataset.csv\u0027)\r\nprint(myData4)\r\n\r\n# Чтение большого размера csv-файла с помощью библиотеки data.table\r\nmyData5 \u003c-fread(\u0027D:/Mogilev/2день/amazon-fashion-800k+-user-reviews-dataset.csv\u0027)\r\nprint(myData5)\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n","dictionary":[{"term":"read.csv(путь)","details":["Что делает: Базовая (встроенная в R) функция чтения CSV","Когда использовать: Для небольших и средних файлов; работает медленнее остальных"]},{"term":"sep = \u0027;\u0027","details":["Что делает: Параметр, указывающий разделитель столбцов (по умолчанию в read.csv это запятая ,, а в русскоязычном Excel часто точка с запятой ;)","Когда использовать: Когда все столбцы склеились в одну колонку при чтении"]},{"term":"header = FALSE","details":["Что делает: Говорит функции, что в первой строке файла нет заголовков, это уже данные (столбцы назовутся V1, V2...)","Когда использовать: Если файл без шапки"]},{"term":"library(readr) и read_csv(путь)","details":["Что делает: Современная функция из tidyverse. Работает быстрее read.csv, сразу создаёт tibble и показывает типы столбцов","Когда использовать: Основной выбор для большинства задач"]},{"term":"library(data.table) и fread(путь)","details":["Что делает: Сверхбыстрая функция чтения (fast read), сама угадывает разделитель и загружает гигантские файлы за секунды","Когда использовать: Для больших файлов (сотни мегабайт и миллионы строк)"]}],"tag":"CSV"},{"id":"2.4","overview":"Этот скрипт посвящён работе с файлами Excel (.xlsx): чтению таблиц с нужных листов и диапазонов ячеек, а также сохранению таблиц обратно в Excel.\n\n  [!] Важно про пути к файлам: как и в предыдущем уроке, в скрипте прописаны пути вида \u0027D:/Mogilev/2день/...\u0027. Чтобы скрипт заработал у вас, замените их на имена файлов в вашей рабочей папке (например, \u0027Historicalinvesttemp.xlsx\u0027). Кроме того, строка 24 перезаписывает исходный файл Historicalinvesttemp.xlsx — будьте осторожны, если не хотите потерять его оригинальные листы.","name":"2.4 XLS.R","lineCount":51,"walkthrough":[{"text":"1: library(readxl)\n2: library(openxlsx)","type":"code"},{"text":"Подключаем пакет readxl для чтения Excel и openxlsx для записи в Excel.","type":"text"},{"text":"Чтение с первого листа и из диапазона","type":"heading"},{"text":"3: # чтение excel файла с пом библиотеки readxl (чтение происходит с 1го листа)\n4: df\u003c-read_excel(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027)\n5: print(df)","type":"code"},{"text":"Читаем первый лист файла Historicalinvesttemp.xlsx целиком и сохраняем в переменную df.","type":"text"},{"text":"7: # чтение excel файла с пом библиотеки readxl (чтение происходит с 1го листа) с указанного диапазона ячеек\n8: df2\u003c-read_excel(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027, range =\u0027A7:D89\u0027)\n9: print(df2)","type":"code"},{"text":"Часто в Excel сверху есть заголовок или примечания, которые мешают. Параметр range = \u0027A7:D89\u0027 позволяет прочитать только саму таблицу из указанного диапазона ячеек.","type":"text"},{"text":"Чтение с конкретного листа","type":"heading"},{"text":"11: # чтение excel файла с пом библиотеки readxl (чтение происходит с указанного листа)\n12: df3\u003c-read_excel(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027, sheet = \"Sheet2\")\n13: print(df3)","type":"code"},{"text":"Читаем данные с листа с названием \"Sheet2\".","type":"text"},{"text":"15: # чтение excel файла с пом библиотеки readxl (чтение происходит с указанного листа)\n16: # c указанного диапазона\n17: df4\u003c-read_excel(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027, sheet = \"Sheet2\", range = \u0027A1:D9\u0027)\n18: print(df4)","type":"code"},{"text":"Комбинируем оба параметра: читаем диапазон \u0027A1:D9\u0027 с листа \"Sheet2\".","type":"text"},{"text":"20: # просмотр листов в excel файле\n21: print(excel_sheets(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027))","type":"code"},{"text":"Узнаём, какие вообще листы есть в файле (выведет вектор их названий).","type":"text"},{"text":"Запись таблиц в Excel","type":"heading"},{"text":"23: #запись одной таблицы в excel файл\n24: write.xlsx(df4,\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027)","type":"code"},{"text":"Записывает таблицу df4 в файл Historicalinvesttemp.xlsx. Внимание: эта команда полностью перезаписывает файл!","type":"text"},{"text":"26: # запись нескольких фреймов на разные страницы excel файла\n27: sheet_list \u003c-list(\"Лист1\"=df4, \"Лист2\"=df4)\n28: write.xlsx(sheet_list,\u0027D:/Mogilev/2день/Historicalinvesttemp2.xlsx\u0027)","type":"code"},{"text":"Чтобы сохранить сразу несколько таблиц на разные листы одного Excel-файла, их сначала упаковывают в list(...) с указанием названий листов (\"Лист1\", \"Лист2\"), а затем передают этот список в write.xlsx().","type":"text"},{"text":"Работа с большим Excel-файлом и быстрое преобразование столбцов","type":"heading"},{"text":"31: # чтение большого excel файла\n32: myData5 \u003c-read_excel(\u0027D:/Mogilev/2день/HR_Employee_Data.xlsx\u0027)\n33: # вывод первых 6 строк из фрейма\n34: print(head(myData5))","type":"code"},{"text":"Читаем крупный файл HR_Employee_Data.xlsx (~850 КБ) и через head() смотрим только первые 6 строк, чтобы не захламлять консоль.","type":"text"},{"text":"36: # вывод размера фрейма\n37: print(dim(myData5))","type":"code"},{"text":"dim() выведет два числа: сколько всего строк и сколько столбцов в таблице myData5.","type":"text"},{"text":"39: #преобразуем столбцы с дробными числами в проценты (как в исходном файле)\n40: myData5[c(2,3)] \u003c- myData5[c(2,3)]*100\n41: print(head(myData5))","type":"code"},{"text":"В Excel ячейки с форматом «Процент» (например, 38%) на самом деле хранятся как дробь (0.38), и R читает их именно как 0.38. Строка 40 умножает 2-й и 3-й столбцы (myData5[c(2, 3)]) на 100, чтобы превратить доли обратно в привычные числа (например, 38).","type":"text"}],"rawCode":"library(readxl)\r\nlibrary(openxlsx)\r\n# чтение excel файла с пом библиотеки readxl (чтение происходит с 1го листа)\r\ndf\u003c-read_excel(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027)\r\nprint(df)\r\n\r\n# чтение excel файла с пом библиотеки readxl (чтение происходит с 1го листа) с указанного диапазона ячеек\r\ndf2\u003c-read_excel(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027, range =\u0027A7:D89\u0027)\r\nprint(df2)\r\n\r\n# чтение excel файла с пом библиотеки readxl (чтение происходит с указанного листа)\r\ndf3\u003c-read_excel(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027, sheet = \"Sheet2\")\r\nprint(df3)\r\n\r\n# чтение excel файла с пом библиотеки readxl (чтение происходит с указанного листа)\r\n# c указанного диапазона\r\ndf4\u003c-read_excel(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027, sheet = \"Sheet2\", range = \u0027A1:D9\u0027)\r\nprint(df4)\r\n\r\n# просмотр листов в excel файле\r\nprint(excel_sheets(\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027))\r\n\r\n#запись одной таблицы в excel файл      \r\nwrite.xlsx(df4,\u0027D:/Mogilev/2день/Historicalinvesttemp.xlsx\u0027)\r\n\r\n# запись нескольких фреймов на разные страницы excel файла\r\nsheet_list \u003c-list(\"Лист1\"=df4, \"Лист2\"=df4)\r\nwrite.xlsx(sheet_list,\u0027D:/Mogilev/2день/Historicalinvesttemp2.xlsx\u0027)\r\n\r\n\r\n# чтение большого excel файла\r\nmyData5 \u003c-read_excel(\u0027D:/Mogilev/2день/HR_Employee_Data.xlsx\u0027)\r\n# вывод первых 6 строк из фрейма\r\nprint(head(myData5))\r\n\r\n# вывод размера фрейма\r\nprint(dim(myData5))\r\n\r\n#преобразуем столбцы с дробными числами в проценты (как в исходном файле)\r\nmyData5[c(2,3)] \u003c- myData5[c(2,3)]*100\r\nprint(head(myData5))\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n            ","dictionary":[{"term":"library(readxl)","details":["Что делает: Подключает пакет для чтения файлов .xls и .xlsx (Excel при этом не нужен)","Аналогия: Читалка Excel"]},{"term":"library(openxlsx)","details":["Что делает: Подключает пакет для записи (создания и сохранения) файлов .xlsx","Аналогия: Писатель в Excel"]},{"term":"read_excel(путь)","details":["Что делает: Читает данные из Excel-файла (по умолчанию — с первого листа)","Аналогия: Открыть первый лист книги"]},{"term":"range = \"A7:D89\"","details":["Что делает: Параметр read_excel(): читает только указанный прямоугольник ячеек","Аналогия: Выделить диапазон мышкой"]},{"term":"sheet = \"Sheet2\"","details":["Что делает: Параметр read_excel(): указывает имя (или номер) листа, с которого читать","Аналогия: Переключиться на нужный лист"]},{"term":"excel_sheets(путь)","details":["Что делает: Возвращает список названий всех листов в Excel-файле","Аналогия: Посмотреть ярлычки листов внизу"]},{"term":"write.xlsx(таблица, путь)","details":["Что делает: Сохраняет таблицу (или список таблиц) в файл .xlsx","Аналогия: «Сохранить как Excel»"]},{"term":"list(\"Лист1\" = df1, ...)","details":["Что делает: Создаёт именованный список таблиц; при передаче в write.xlsx() каждая таблица запишется на свой отдельный лист","Аналогия: Книга из нескольких листов"]},{"term":"head(таблица)","details":["Что делает: Показывает только первые 6 строк таблицы (удобно для быстрой проверки больших файлов)","Аналогия: Глянуть на шапку таблицы"]},{"term":"dim(таблица)","details":["Что делает: Показывает размерность таблицы: количество строк и количество столбцов","Аналогия: «Сколько строк и колонок?»"]},{"term":"df[c(2, 3)]","details":["Что делает: Выбирает из таблицы df 2-й и 3-й столбцы целиком","Аналогия: Выделить столбцы B и C"]}],"tag":"Excel"},{"id":"2.5","overview":"Это итоговый и самый объёмный скрипт курса, посвящённый связыванию (объединению) нескольких таблиц по ключевому столбцу (аналог функции ВПР / VLOOKUP в Excel или JOIN в SQL).\n\nВ пакете nycflights13 данные разложены по 5 связанным таблицам:\n  - flights — рейсы;\n  - airlines — расшифровка кодов авиакомпаний;\n  - airports — справочник аэропортов;\n  - planes — справочник самолётов;\n  - weather — погода в аэропортах.\n\nВ скрипте разбираются:\n  - проверка уникальности ключей;\n  - разные виды соединений: inner_join, left_join, right_join, full_join;\n  - поведение при неуникальных (повторяющихся) ключах;\n  - соединение таблиц, когда ключевой столбец называется по-разному в двух таблицах (by = c(\"dest\" = \"faa\")), и переименование столбца (rename()).","name":"2.5.R","lineCount":149,"walkthrough":[{"text":"Знакомство со справочниками (строки 1–13)","type":"heading"},{"text":"1: library(nycflights13)\n2: library(tidyverse)\n4: # flights - основная таблица описания авиаоейсов\n5:   view(flights)\n6: # airlines - полное название перевозчика (авиакомпании)\n7: view(airlines)\n8: # airports - инфа о каждом аэропорте\n9: view(airports)\n10: # planes -\n11: view(planes)\n12: # weather - инфа о погоде\n13: view(weather)","type":"code"},{"text":"Подключаем пакеты и открываем в отдельных вкладках все 5 связанных таблиц из nycflights13, чтобы увидеть их структуру и общие ключевые столбцы.","type":"text"},{"text":"Проверка уникальности ключа (строки 15–17)","type":"heading"},{"text":"15: # проверка,все ли записи в столбце, который определен, как ключевой,будут уникальными\n16: # print(planes %\u003e% count(tailnum) %\u003e% filter(n\u003e1))\n17: print(weather %\u003e% count(year, month, day, hour, origin) %\u003e% filter(n\u003e1))","type":"code"},{"text":"Перед тем как соединять таблицы, важно проверить, нет ли дубликатов по ключевым полям.\ncount(...) считает повторения, а filter(n \u003e 1) показывает только те ключи, которые встретились больше 1 раза.","type":"text"},{"text":"Подтягивание названий авиакомпаний к рейсам (строки 18–28)","type":"heading"},{"text":"18: # создадим уменьшенную копию таблицы о авиаперевозках\n19: fl2 \u003c- flights %\u003e% select(year:day, hour, origin, dest, tailnum, carrier)\n20: print(fl2)","type":"code"},{"text":"Создаём компактную таблицу рейсов fl2, где есть код перевозчика carrier (например, \"UA\"), но нет его полного названия.","type":"text"},{"text":"23: fl3 \u003c- fl2 %\u003e% left_join(airlines, by =\u0027carrier\u0027)\n24: print(fl3)","type":"code"},{"text":"Присоединяем к fl2 справочник airlines по общему столбцу \u0027carrier\u0027. Теперь у каждого рейса появился столбец name с полным названием авиакомпании (например, \"United Air Lines Inc.\").","type":"text"},{"text":"27: fl3 \u003c- fl2 %\u003e% left_join(airlines, by =\u0027carrier\u0027) %\u003e% select(carrier)\n28: print(fl3)","type":"code"},{"text":"То же самое соединение, но затем select(carrier) оставляет только один столбец carrier (учебная демонстрация цепочки %\u003e%).","type":"text"},{"text":"Учебные примеры видов соединений (строки 30–115, закомментированы)","type":"heading"},{"text":"В закомментированной части на маленьких таблицах x и y, созданных через tribble(), по очереди разбираются:\n  - Строки 51–52: inner_join(y, by = \"key\") — остаются только ключи 1 и 2, которые есть и в x, и в y.\n  - Строки 59–60: left_join(y, by = \"key\") — остаются все ключи из x (1, 2, 3), для 3 подставляется NA.\n  - Строки 66–67: right_join(y, by = \"key\") — остаются все ключи из y (1, 2, 4), для 4 подставляется NA.\n  - Строки 72–73: full_join(y, by = \"key\") — остаются все ключи (1, 2, 3, 4).\n  - Строки 77–114: примеры с повторяющимися ключами в одной или обеих таблицах: если в обеих таблицах ключ 2 встречается дважды, то left_join выдаст все их комбинации (2 × 2 = 4 строки для ключа 2).","type":"text"},{"text":"Соединение по столбцам с разными именами (строки 117–133, активный код)","type":"heading"},{"text":"117: x \u003c- tribble(\n118:   ~key, ~ val_x,\n119:   1,\"x1\",\n120:   2,\"x2\",\n121:   3,\"x3\",\n122:   )\n123: print(x)\n124: y \u003c- tribble(\n125:   ~key, ~ val_x,\n126:   1,\"y1\",\n127:   2,\"y2\",\n128:   3,\"y3\",\n129: )\n130: print(y)\n132: xy_left4 \u003c- left_join(x, y, by = c(\"key_x\"=\"key_y\"))\n133: print(xy_left4)","type":"code"},{"text":"  [!] Важное замечание (опечатка в учебном скрипте): в строках 118 и 125 ключевые столбцы названы одинаково (~key), а в строке 132 в by = c(\"key_x\" = \"key_y\") указаны имена key_x и key_y. При запуске строки 132 R выдаст ошибку, потому что столбцов key_x и key_y в этих таблицах нет. Чтобы пример работал, нужно либо назвать столбцы ~key_x и ~key_y, либо написать by = \"key\".","type":"note"},{"text":"Практический пример с аэропортами и переименованием (строки 136–145, активный код)","type":"heading"},{"text":"136: # создадим уменьшенную копию таблицы о авиаперевозках\n137: fl2 \u003c- flights %\u003e% select(year:day, hour, origin, dest, tailnum, carrier)\n138: print(fl2)","type":"code"},{"text":"Снова создаём компактную таблицу рейсов fl2.","type":"text"},{"text":"139: #добавить в таблицу полное название аэропорта из фрейма airports\n140: fl3 \u003c- fl2 %\u003e% left_join(airports %\u003e% select(\u0027faa\u0027, \u0027name\u0027), by= c(\u0027dest\u0027=\u0027faa\u0027))\n141: print(fl3)","type":"code"},{"text":"Очень красивый приём:\n1. Из таблицы airports заранее берём только два столбца — код аэропорта \u0027faa\u0027 и его название \u0027name\u0027 (airports %\u003e% select(\u0027faa\u0027, \u0027name\u0027)), чтобы не тащить лишние столбцы (координаты, часовой пояс и т.д.).\n2. Присоединяем их к fl2 с помощью left_join, указав by = c(\u0027dest\u0027 = \u0027faa\u0027) — то есть «ищи совпадение между столбцом dest из левой таблицы и столбцом faa из правой».","type":"text"},{"text":"143: fl4 \u003c- fl2 %\u003e% left_join(airports %\u003e% select(\u0027faa\u0027, \u0027name\u0027), by = c(\"dest\"=\"faa\"))%\u003e%\n144: rename(dest_name=name)\n145: print(fl4)","type":"code"},{"text":"То же самое соединение, но в конце добавлен шаг rename(dest_name = name): появившийся столбец name переименовывается в более понятное имя dest_name (название аэропорта прилёта). Обратите внимание на порядок в rename(): новое_имя = старое_имя.","type":"text"}],"rawCode":"library(nycflights13)\r\nlibrary(tidyverse)\r\n\r\n# flights - основная таблица описания авиаоейсов\r\n  view(flights)\r\n# airlines - полное название перевозчика (авиакомпании)\r\nview(airlines)\r\n# airports - инфа о каждом аэропорте\r\nview(airports)\r\n# planes - \r\nview(planes)\r\n# weather - инфа о погоде\r\nview(weather)\r\n\r\n# проверка,все ли записи в столбце, который определен, как ключевой,будут уникальными\r\n# print(planes %\u003e% count(tailnum) %\u003e% filter(n\u003e1))\r\nprint(weather %\u003e% count(year, month, day, hour, origin) %\u003e% filter(n\u003e1))\r\n# создадим уменьшенную копию таблицы о авиаперевозках\r\nfl2 \u003c- flights %\u003e% select(year:day, hour, origin, dest, tailnum, carrier)\r\nprint(fl2)\r\n# # в фрейм fl2 добавим название авиакомпаний (1й параметр \"airlines\" - откуда берем данные,\r\n# # 2й параметр \"carrier\" - какое поле является ключевым)\r\nfl3 \u003c- fl2 %\u003e% left_join(airlines, by =\u0027carrier\u0027)\r\nprint(fl3)\r\n# # в фрейм fl2 добавим название авиакомпаний (1й параметр \"airlines\" - откуда берем новые данные,\r\n# # 2й параметр \"carrier\" - какое поле является ключевым) удалим краткое название авиакомпании\r\nfl3 \u003c- fl2 %\u003e% left_join(airlines, by =\u0027carrier\u0027) %\u003e% select(carrier)\r\nprint(fl3)\r\n# \r\n# #создадим 2 небольших фрейма для наголядной демонстрации объединения нескольких фреймов\r\n# \r\n# x \u003c- tribble(\r\n#   ~key, ~ val_x,\r\n#   1,\"x1\",\r\n#   2,\"x2\",\r\n#   3,\"x3\",\r\n# )\r\n# print(x)\r\n# \r\n# y \u003c- tribble(\r\n#   ~key, ~ val_x,\r\n#   1,\"y1\",\r\n#   2,\"y2\",\r\n#   4,\"y4\",\r\n# )\r\n# print(y)\r\n# \r\n# # внутреннее соежинение, в новый фрейм попадают только те данные, для которых найдено\r\n# # пара по ключевому столбцу\r\n# \r\n# # xy \u003c- x %\u003e% inner_join(y,by=\"key\")\r\n# # print(xy)\r\n# \r\n# #внешнее соединение\r\n# # левое соединение: данные помещаются в первую таблицу в первый фрейм,\r\n# # если в 1й табл есть ключ без пары, то для него подставится значение \"NA\"\r\n# # если во 2й табл есть ключ без пары, то это значение отбросится\r\n# \r\n# xy_left \u003c- x %\u003e% left_join(y, by=\"key\")\r\n# print(xy_left)\r\n# \r\n# # правое соединение: данные помещаются во 2ю таблицу (справа),\r\n# # если в 2й табл есть ключ без пары, то для него подставится значение \"NA\"\r\n# # если во 1й табл есть ключ без пары, то это значение отбросится\r\n# \r\n# xy_right \u003c- x %\u003e% right_join(y, by=\"key\")\r\n# print(xy_right)\r\n# \r\n# # полное соединение: значение по совпадению ключей добавляется,\r\n# # а для ключей с 1й и 2й таблицы без пары добавляется значение NA\r\n# \r\n# xy_full \u003c- x %\u003e% full_join(y, by=\"key\")\r\n# print(xy_full)\r\n# \r\n# #пример создания фрейма для демонстрации соединения таблиц с неуникальными ключами\r\n# \r\n# x \u003c- tribble(\r\n#   ~key, ~ val_x,\r\n#   1,\"x1\",\r\n#   2,\"x2\",\r\n#   2,\"x3\",\r\n#   1,\"x4\",\r\n# )\r\n# print(x)\r\n# y \u003c- tribble(\r\n#   ~key, ~ val_x,\r\n#   1,\"y1\",\r\n#   2,\"y2\",\r\n#   )\r\n# print(y)\r\n# # ситуация, где в 1й табл ключи не уникальные, во 2й табл ключи уникальные\r\n# xy_left2 \u003c- x %\u003e% left_join(y, by = \"key\")\r\n# print(xy_left2)\r\n# \r\n# # ситуация, где в 1й и 2й табл ключи не уникальные\r\n# x \u003c- tribble(\r\n#   ~key, ~ val_x,\r\n#   1,\"x1\",\r\n#   2,\"x2\",\r\n#   2,\"x3\",\r\n#   3,\"x4\",\r\n# )\r\n# print(x)\r\n# y \u003c- tribble(\r\n#   ~key, ~ val_x,\r\n#   1,\"y1\",\r\n#   2,\"y2\",\r\n#   2,\"y3\",\r\n#   3,\"y4\",\r\n# )\r\n# print(y)\r\n# \r\n# xy_left3 \u003c- left_join(x, y, by = \"key\")\r\n# print(xy_left3)\r\n\r\n\r\nx \u003c- tribble(\r\n  ~key, ~ val_x,\r\n  1,\"x1\",\r\n  2,\"x2\",\r\n  3,\"x3\",\r\n  )\r\nprint(x)\r\ny \u003c- tribble(\r\n  ~key, ~ val_x,\r\n  1,\"y1\",\r\n  2,\"y2\",\r\n  3,\"y3\",\r\n)\r\nprint(y)\r\n\r\nxy_left4 \u003c- left_join(x, y, by = c(\"key_x\"=\"key_y\"))\r\nprint(xy_left4)\r\n\r\n\r\n# создадим уменьшенную копию таблицы о авиаперевозках\r\nfl2 \u003c- flights %\u003e% select(year:day, hour, origin, dest, tailnum, carrier)\r\nprint(fl2)\r\n#добавить в таблицу полное название аэропорта из фрейма airports\r\nfl3 \u003c- fl2 %\u003e% left_join(airports %\u003e% select(\u0027faa\u0027, \u0027name\u0027), by= c(\u0027dest\u0027=\u0027faa\u0027))\r\nprint(fl3)\r\n\r\nfl4 \u003c- fl2 %\u003e% left_join(airports %\u003e% select(\u0027faa\u0027, \u0027name\u0027), by = c(\"dest\"=\"faa\"))%\u003e%\r\nrename(dest_name=name)\r\nprint(fl4)\r\n\r\n\r\n\r\n","dictionary":[{"term":"count(столбец)","details":["Что делает: Считает, сколько раз встречается каждое значение","Аналогия с ВПР / SQL: Сводная таблица «Количество»"]},{"term":"tribble(~col1, ~col2, ...)","details":["Что делает: Удобный способ создать маленькую таблицу прямо в коде, записывая её по строкам (как обычную таблицу)","Аналогия с ВПР / SQL: Мини-табличка для теста"]},{"term":"left_join(x, y, by = \"key\")","details":["Что делает: Левое соединение: берёт все строки из таблицы x и подтягивает к ним совпадения из y. Если пары в y нет — ставит NA","Аналогия с ВПР / SQL: Классический ВПР в Excel"]},{"term":"right_join(x, y, by = \"key\")","details":["Что делает: Правое соединение: то же самое, но сохраняет все строки из правой таблицы y","Аналогия с ВПР / SQL: ВПР наоборот"]},{"term":"inner_join(x, y, by = \"key\")","details":["Что делает: Внутреннее соединение: оставляет только те строки, у которых нашлась пара в обеих таблицах","Аналогия с ВПР / SQL: Пересечение двух списков"]},{"term":"full_join(x, y, by = \"key\")","details":["Что делает: Полное соединение: сохраняет все строки из обеих таблиц; где нет пары — ставит NA","Аналогия с ВПР / SQL: Объединение двух списков"]},{"term":"by = c(\"a\" = \"b\")","details":["Что делает: Указывает, что столбец \"a\" в левой таблице соответствует столбцу \"b\" в правой","Аналогия с ВПР / SQL: Когда колонки с кодами названы по-разному"]},{"term":"rename(новое = старое)","details":["Что делает: Переименовывает столбец в таблице","Аналогия с ВПР / SQL: Переименовать заголовок колонки"]}],"tag":"joins"}]},{"color":"#059669","title":"День 3: Факторы и даты/время","id":3,"subtitle":"forcats (категории и порядок) и lubridate (даты, время, графики)","scripts":[{"id":"3.1","overview":"Этот скрипт знакомит с особым типом данных в R — факторами (factors), с которыми работает пакет forcats (входит в tidyverse).\n\nФактор — это текстовая категория с заранее заданным набором допустимых значений (уровней) и их правильным порядком. Обычный текст в R сортируется строго по алфавиту (\"Apr\", \"Dec\", \"Jan\", \"Mar\"), а фактор позволяет задать логический порядок (например, месяцы года: \"Jan\", \"Feb\", \"Mar\"...) и сразу ловить опечатки (например, \"Jam\" вместо \"Jan\" превратится в NA).\n\nЧто вы научитесь делать:\n  - понимать разницу между обычным списком строк и фактором;\n  - задавать свой словарь допустимых значений (levels);\n  - сортировать фактор не по алфавиту, а по смыслу;\n  - находить опечатки в данных через превращение неизвестных значений в NA;\n  - создавать фактор с порядком, как в исходном списке (unique).","name":"3.1 Знакомство с факторами.R","lineCount":46,"walkthrough":[{"text":"1: library(nycflights13)\n2: library(tidyverse)\n3: library(forcats)","type":"code"},{"text":"Подключаем пакет с учебными данными, основной набор tidyverse и пакет forcats для работы с факторами.","type":"text"},{"text":"4: x1 \u003c- c(\"Dec\",\"Apr\",\"Jan\",\"Mar\")\n5: x2 \u003c- c(\"Dec\",\"Apr\",\"Jam\",\"Mar\")\n6: print(x1)\n7: print(x2)","type":"code"},{"text":"Создаём два обычных текстовых списка: x1 — с четырьмя корректными названиями месяцев, x2 — с опечаткой (\"Jam\" вместо \"Jan\"). Выводим оба в консоль.","type":"text"},{"text":"9: print(sort(x1))","type":"code"},{"text":"Пробуем отсортировать обычный текст x1. R отсортирует его по алфавиту: \"Apr\", \"Dec\", \"Jan\", \"Mar\". Для месяцев года это неправильный порядок.","type":"text"},{"text":"Создание фактора со своим списком уровней","type":"heading"},{"text":"14: month_levels \u003c-c(\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Nov\",\"Dec\")","type":"code"},{"text":"Создаём справочник month_levels — правильный порядок месяцев.\n  [!] Примечание: в этом учебном списке преподаватель случайно пропустил месяц \"May\" (май). Если бы в данных встретился \"May\", он бы превратился в NA.","type":"text"},{"text":"15: y1 \u003c-factor(x1,levels=month_levels)\n16: print(y1)\n17: print(sort(y1))","type":"code"},{"text":"Превращаем x1 в фактор y1, опираясь на справочник month_levels.\nПри выводе y1 в консоль R покажет сами значения и строчку Levels: Jan Feb Mar ... Dec.\nТеперь sort(y1) отсортирует месяцы правильно по календарю: Jan, Mar, Apr, Dec!","type":"text"},{"text":"Как фактор отлавливает опечатки","type":"heading"},{"text":"21: y2 \u003c-factor(x2,levels=month_levels)\n22: print(y2)","type":"code"},{"text":"Создаём фактор y2 из списка x2, где была опечатка \"Jam\". Так как слова \"Jam\" нет в справочнике month_levels, R без лишних вопросов заменит его на NA (пропуск): Dec, Apr, NA, Mar.","type":"text"},{"text":"Создание фактора без справочника уровней","type":"heading"},{"text":"26: y3 \u003c-factor(x1)\n27: print(y3)","type":"code"},{"text":"Если не указывать levels, R сам соберёт уровни из данных и расставит их по алфавиту: Levels: Apr Dec Jan Mar.","type":"text"},{"text":"31: y4 \u003c- factor(x1, levels= unique(x1))\n32: print(y4)","type":"code"},{"text":"Хитрость: levels = unique(x1) заставляет R взять уникальные значения в том самом порядке, в котором они идут в исходном списке x1 (Dec, Apr, Jan, Mar).","type":"text"},{"text":"36: x3 \u003c- c(\"Dec\",\"Apr\",\"Jan\",\"Mar\",\"Apr\",\"Dec\",\"Mar\",\"Apr\")\n37: y5 \u003c-factor(x3, levels=unique(x3))\n38: print(y5)","type":"code"},{"text":"Даже если в исходном списке x3 значения повторяются много раз, unique(x3) выделит только первые вхождения каждого месяца, и в levels попадут только 4 уникальных уровня: Dec, Apr, Jan, Mar.","type":"text"}],"rawCode":"library(nycflights13)\r\nlibrary(tidyverse)\r\nlibrary(forcats)\r\nx1 \u003c- c(\"Dec\",\"Apr\",\"Jan\",\"Mar\")\r\nx2 \u003c- c(\"Dec\",\"Apr\",\"Jam\",\"Mar\")\r\nprint(x1)\r\nprint(x2)\r\n\r\nprint(sort(x1))\r\n\r\n# # создание фактора:\r\n# 1) создаем список со всеми значениями категории\r\n# 2) на базе списка и источника данных создаем фактор\r\nmonth_levels \u003c-c(\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Nov\",\"Dec\")\r\ny1 \u003c-factor(x1,levels=month_levels)\r\nprint(y1)\r\nprint(sort(y1))\r\n\r\n#если в источике данных есть элемент который не входит в список фактора,\r\n# он заменится на значение NA\r\ny2 \u003c-factor(x2,levels=month_levels)\r\nprint(y2)\r\n\r\n# создание фактора на основе источника данных без списка уровней\r\n# (в фактор все элементы добавятся в алфавитном порядке)\r\ny3 \u003c-factor(x1)\r\nprint(y3)\r\n\r\n# созданеи фактора на основе источника данных без списка уровней\r\n# (в фактор элементы добавялются в порядке, как в источнике данных)\r\ny4 \u003c- factor(x1, levels= unique(x1))\r\nprint(y4)             \r\n\r\n# при создании фактора на базе источника без списка уровней\r\n# в фактор добавятся только уникальные значения\r\nx3 \u003c- c(\"Dec\",\"Apr\",\"Jan\",\"Mar\",\"Apr\",\"Dec\",\"Mar\",\"Apr\")\r\ny5 \u003c-factor(x3, levels=unique(x3))\r\nprint(y5)\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n","dictionary":[{"term":"library(forcats)","details":["Что это и зачем нужно: Подключает пакет для удобной работы с факторами (название — анаграмма слова factors)","Аналогия из Excel: Выпадающий список (Проверка данных) со строгим перечнем значений"]},{"term":"c(\"Dec\", \"Apr\", ...)","details":["Что это и зачем нужно: Создаёт вектор — простой одномерный список значений","Аналогия из Excel: Столбец с текстом"]},{"term":"sort(x)","details":["Что это и зачем нужно: Сортирует значения в списке x. Для обычного текста — по алфавиту, для фактора — по порядку его уровней","Аналогия из Excel: Сортировка от А до Я или по настраиваемому списку"]},{"term":"factor(данные, levels = список)","details":["Что это и зачем нужно: Превращает список строк в фактор с заданным перечнем и порядком допустимых значений (уровней)","Аналогия из Excel: Привязать столбец к справочнику допустимых значений"]},{"term":"levels = ...","details":["Что это и зачем нужно: Параметр функции factor(), задающий разрешённые категории и их порядок следования","Аналогия из Excel: Пользовательский список для сортировки (Янв, Фев, Мар...)"]},{"term":"unique(x)","details":["Что это и зачем нужно: Оставляет из списка x только уникальные значения, убирая дубликаты, в том порядке, в котором они встретились впервые","Аналогия из Excel: Удалить дубликаты"]},{"term":"NA","details":["Что это и зачем нужно: Пустое (отсутствующее) значение. В факторе появляется автоматически, если встретилось значение, которого нет в levels","Аналогия из Excel: Нераспознанное значение / пустая ячейка"]}],"tag":"factor"},{"id":"3.2","overview":"Этот скрипт показывает, зачем на практике менять порядок уровней фактора и как это делает графики намного понятнее и красивее.\n\nВ качестве данных используется встроенная в пакет forcats таблица gss_cat — результаты крупного социологического опроса в США (год, семейное положение, возраст, доход, раса, религия, часы просмотра ТВ в день и т.д.).\n\nЧто вы научитесь делать:\n  - считать количество элементов по категориям (count) и строить столбчатые диаграммы (geom_bar);\n  - показывать на графике даже пустые категории с нулём наблюдений (drop = FALSE);\n  - сортировать категории на графике по числовому показателю (fct_reorder);\n  - переносить выбранные категории в начало списка (fct_relevel);\n  - выравнивать цвета в легенде линейного графика (fct_reorder2);\n  - сортировать столбцы диаграммы по частоте встречаемости (fct_infreq и fct_rev).","name":"3.2 Факторы изменения порядка следования.R","lineCount":81,"walkthrough":[{"text":"1: library(tidyverse)\n2: library(forcats)\n4: # print(gss_cat)\n5: # View(gss_cat)","type":"code"},{"text":"Подключаем пакеты. Закомментированные строки 4–5 позволяют при желании посмотреть таблицу gss_cat целиком.","type":"text"},{"text":"График по расам и пустые уровни фактора","type":"heading"},{"text":"8: rez \u003c- gss_cat %\u003e% count(race)\n9: print(rez)","type":"code"},{"text":"Считаем, сколько людей каждой расы в опросе. У фактора race есть уровень \"Not applicable\", но в таблице людей с таким значением 0, поэтому count() его не выведет.","type":"text"},{"text":"12: g \u003c- ggplot(gss_cat, aes(race)) + geom_bar()\n13: print(g)","type":"code"},{"text":"Строим столбчатую диаграмму по расам. По умолчанию ggplot тоже скрывает пустые уровни.","type":"text"},{"text":"16: g2 \u003c- ggplot(gss_cat, aes(race)) + geom_bar() + scale_x_discrete(drop=FALSE)\n17: print(g2)","type":"code"},{"text":"Добавляем scale_x_discrete(drop = FALSE) — теперь на оси X отобразятся все уровни фактора, включая пустые (с нулевой высотой столбца).","type":"text"},{"text":"Сортировка категорий на графике: fct_reorder()","type":"heading"},{"text":"21: relig \u003c- gss_cat %\u003e% group_by(relig) %\u003e% summarise(\n22:   age = mean(age, na.rm = TRUE),\n23:   tvhours = mean(tvhours, na.rm = TRUE),\n24:   n = n()\n25: )\n26: g3 \u003c- ggplot(relig, aes(tvhours, relig)) + geom_point()\n27: print(g3)","type":"code"},{"text":"Группируем данные по религии (relig), считаем средний возраст, среднее число часов перед ТВ (tvhours) и количество опрошенных n. Строим точечный график g3: точки разбросаны хаотично, читать график неудобно.","type":"text"},{"text":"34: g4 \u003c- ggplot(relig, aes(tvhours, fct_reorder(relig,tvhours))) + geom_point()\n35: print(g4)","type":"code"},{"text":"Оборачиваем relig в fct_reorder(relig, tvhours). Теперь религии на вертикальной оси выстроились строго по возрастанию времени просмотра ТВ — от меньшего к большему. График стал наглядным.","type":"text"},{"text":"Перемещение элемента в начало: fct_relevel()","type":"heading"},{"text":"39: rincome \u003c- gss_cat %\u003e% group_by(rincome) %\u003e% summarise(\n40:   age = mean(age, na.rm = TRUE),\n41:   n = n()\n42: )\n43: g5 \u003c- ggplot(rincome, aes(age, fct_relevel(rincome, \"Not applicable\"))) + geom_point()\n44: print(g5)","type":"code"},{"text":"Считаем средний возраст по уровням дохода (rincome). Здесь категории дохода уже имеют естественный порядок (от меньших сумм к большим), поэтому fct_reorder() всё бы испортил. Вместо этого с помощью fct_relevel(rincome, \"Not applicable\") мы переносим строку \"Not applicable\" («Не применимо») в самый низ/начало оси, чтобы она не смешивалась с суммами дохода.","type":"text"},{"text":"Упорядочивание легенды на линейном графике: fct_reorder2()","type":"heading"},{"text":"47: by_age \u003c- gss_cat %\u003e% filter(!is.na(age)) %\u003e% group_by(age, marital) %\u003e% count() %\u003e% mutate(prop = n)\n48: g6 \u003c- ggplot(by_age, aes(age, prop, color = marital)) + geom_line(na.rm = TRUE)\n49: print(g6)","type":"code"},{"text":"Считаем количество людей каждого возраста (age) и семейного положения (marital) и строим многоцветный линейный график g6. Порядок цветов в легенде не совпадает с расположением линий на графике.","type":"text"},{"text":"53: g7 \u003c- ggplot(by_age, aes(age, prop, color = fct_reorder2(marital, age, prop))) + geom_line()+\n54:   labs(color=\"marital\")\n55: print(g7)","type":"code"},{"text":"Функция fct_reorder2(marital, age, prop) расставляет пункты легенды сверху вниз точно так же, как идут линии в правой части графика. А labs(color = \"marital\") возвращает легенде аккуратное название вместо длинной формулы.","type":"text"},{"text":"Сортировка столбцов по частоте: fct_infreq() и fct_rev()","type":"heading"},{"text":"58: g8 \u003c- gss_cat %\u003e% mutate(marital = marital %\u003e% fct_infreq() %\u003e% fct_rev()) %\u003e% ggplot(aes(marital)) + geom_bar()\n59: print(g8)","type":"code"},{"text":"Преобразуем столбец marital прямо перед построением графика:\n  1) fct_infreq() сортирует категории от самой частой к самой редкой;\n  2) fct_rev() разворачивает этот порядок наоборот — от самой редкой к самой частой.\nВ итоге столбцы на диаграмме g8 растут слева направо аккуратной лесенкой.","type":"text"},{"text":"62: g9 \u003c- gss_cat %\u003e% ggplot(aes(marital)) + geom_bar()\n63: print(g9)","type":"code"},{"text":"Тот же график без сортировки категорий — для сравнения, насколько нагляднее выглядит вариант g8.","type":"text"}],"rawCode":"library(tidyverse)\r\nlibrary(forcats)\r\n\r\n# print(gss_cat)\r\n# View(gss_cat)\r\n\r\n# демонстрация фактора по колонке раса в виде списка\r\nrez \u003c- gss_cat %\u003e% count(race)\r\nprint(rez)\r\n\r\n# графическая демонстрация фактора по колонке раса\r\ng \u003c- ggplot(gss_cat, aes(race)) + geom_bar()\r\nprint(g)\r\n\r\n# графическая демонстрация фактора по колонке раса (с отображением не выбранных элементов)\r\ng2 \u003c- ggplot(gss_cat, aes(race)) + geom_bar() + scale_x_discrete(drop=FALSE)\r\nprint(g2)\r\n\r\n# построим график зависимости часов просмотра телевизора в связи с религией\r\n# строим график по данным в том порядке как он находится в источнике\r\nrelig \u003c- gss_cat %\u003e% group_by(relig) %\u003e% summarise(\r\n  age = mean(age, na.rm = TRUE),\r\n  tvhours = mean(tvhours, na.rm = TRUE),\r\n  n = n()\r\n)\r\ng3 \u003c- ggplot(relig, aes(tvhours, relig)) + geom_point()\r\nprint(g3)\r\n\r\n# для изменения порядка следования элементов в факторе используется функция fct_reorder\r\n# функция fct_reorder принимает на вход 3 параметра:\r\n# 1 - фактор, уровни которого нужно изменить\r\n# 2 - числовой вектор, который необходимо использовать для изменения порядка элементов фактора\r\n# 3 - функция которая используется, если для каждого значения из пункта 1 несколько значений (необязательный)\r\ng4 \u003c- ggplot(relig, aes(tvhours, fct_reorder(relig,tvhours))) + geom_point()\r\nprint(g4)\r\n\r\n# перемещение нескольких элементов фактора в начало, для этого используется функция fct_relevel\r\n# функция fct_relevel принимает на вход фактор и элементы которые необходимо переместить в начало\r\nrincome \u003c- gss_cat %\u003e% group_by(rincome) %\u003e% summarise(\r\n  age = mean(age, na.rm = TRUE),\r\n  n = n()\r\n)\r\ng5 \u003c- ggplot(rincome, aes(age, fct_relevel(rincome, \"Not applicable\"))) + geom_point()\r\nprint(g5)\r\n\r\n\r\nby_age \u003c- gss_cat %\u003e% filter(!is.na(age)) %\u003e% group_by(age, marital) %\u003e% count() %\u003e% mutate(prop = n)\r\ng6 \u003c- ggplot(by_age, aes(age, prop, color = marital)) + geom_line(na.rm = TRUE)\r\nprint(g6)\r\n\r\n# перестройка значений в факторе по значению \"у\" связанным с наибольшим значением \"x\"\r\n# (на графике цвет линий выравнивается с легендой), для этого можно воспользоваться функцие fct_reorder2\r\ng7 \u003c- ggplot(by_age, aes(age, prop, color = fct_reorder2(marital, age, prop))) + geom_line()+\r\n  labs(color=\"marital\")\r\nprint(g7)\r\n\r\n# перестройка значений в факторе по возрастанию значений для постройки столбчатой диаграммы\r\ng8 \u003c- gss_cat %\u003e% mutate(marital = marital %\u003e% fct_infreq() %\u003e% fct_rev()) %\u003e% ggplot(aes(marital)) + geom_bar()\r\nprint(g8)\r\n\r\n# построить тот же график, но без изменения категорий факторов:\r\ng9 \u003c- gss_cat %\u003e% ggplot(aes(marital)) + geom_bar()\r\nprint(g9)\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n","dictionary":[{"term":"gss_cat","details":["Что это и зачем нужно: Готовая учебная таблица социологического опроса (встроена в forcats)"]},{"term":"count(столбец)","details":["Что это и зачем нужно: Подсчитывает, сколько строк приходится на каждую категорию"]},{"term":"ggplot(данные, aes(...)) + geom_bar()","details":["Что это и зачем нужно: Строит столбчатую диаграмму количества элементов в каждой категории"]},{"term":"scale_x_discrete(drop = FALSE)","details":["Что это и зачем нужно: Заставляет ggplot показать на оси X даже те уровни фактора, у которых в данных 0 строк"]},{"term":"geom_point()","details":["Что это и зачем нужно: Рисует точечный график"]},{"term":"geom_line()","details":["Что это и зачем нужно: Рисует линейный график"]},{"term":"fct_reorder(фактор, число)","details":["Что это и зачем нужно: Меняет порядок уровней фактора по возрастанию связанного с ними числового столбца (чтобы точки на графике выстроились лесенкой, а не вразброс)"]},{"term":"fct_relevel(фактор, \"элемент\")","details":["Что это и зачем нужно: Перемещает указанный элемент (или несколько) в самое начало списка уровней фактора"]},{"term":"fct_reorder2(фактор, x, y)","details":["Что это и зачем нужно: Для линейных графиков: сортирует категории в легенде в том порядке, в каком линии заканчиваются на правом краю графика (по y при максимальном x)"]},{"term":"fct_infreq(фактор)","details":["Что это и зачем нужно: Сортирует уровни фактора по частоте — от самой многочисленной категории к самой редкой"]},{"term":"fct_rev(фактор)","details":["Что это и зачем нужно: Переворачивает порядок уровней фактора задом наперёд (в паре с fct_infreq даёт порядок от меньшего к большему)"]},{"term":"labs(color = \"название\")","details":["Что это и зачем нужно: Задаёт понятную подпись для легенды цвета на графике"]}],"tag":"fct_reorder"},{"id":"3.3","overview":"Этот скрипт учит менять сами названия (значения) категорий фактора, а также объединять мелкие или похожие категории в более крупные группы.\n\nНа примере столбца partyid (политические взгляды опрошенных из таблицы gss_cat) разбираются три главные функции пакета forcats:\n  - fct_recode() — переименование отдельных категорий (и ручное склеивание нескольких в одну);\n  - fct_collapse() — удобное объединение целых списков старых категорий в новые группы;\n  - fct_lump() — автоматическое слияние всех мелких/редких категорий в одну общую группу \"Other\".","name":"3.3 Факторы изменения значений элементов.R","lineCount":57,"walkthrough":[{"text":"1: library(tidyverse)\n2: library(forcats)\n4: # содержимое столбца\n5: # print(gss_cat$partyid)\n6: # выведем фактор связанный с столбцом partyid\n7: print(gss_cat %\u003e% count(partyid))","type":"code"},{"text":"Подключаем пакеты и смотрим все исходные категории политических взглядов в столбце partyid (их 10 штук: Strong republican, Not str republican, Ind,near rep и т.д.).","type":"text"},{"text":"Переименование значений: fct_recode()","type":"heading"},{"text":"13: rez \u003c- gss_cat %\u003e% mutate(partyid = fct_recode(partyid,\n14:   \u0027Republican, stronge\u0027 = \u0027Strong republican\u0027,\n15:   \u0027Republican, weak\u0027 = \u0027Not str republican\u0027,\n16:   \u0027Independent, near rep\u0027 = \u0027Ind,near rep\u0027,\n17:   \u0027Independent, near dem\u0027 = \u0027Ind,near dem\u0027,\n18:   \u0027Democrat, weak\u0027 = \u0027Not str democrat\u0027,\n19:   \u0027Democrat, stronge\u0027 = \u0027Strong democrat\u0027\n20: ))\n21: print(rez %\u003e% count(partyid))","type":"code"},{"text":"С помощью mutate() перезаписываем столбец partyid. Внутри fct_recode() действует правило:\n  НОВОЕ_ИМЯ = СТАРОЕ_ИМЯ\nШесть сокращённых названий заменяются на более понятные, а остальные 4 (\"No answer\", \"Don\u0027t know\", \"Other party\", \"Independent\") остаются без изменений.\n  [!] Примечание: в строках 14 и 19 в учебном примере допущена опечатка в английском слове — написано \u0027stronge\u0027 вместо \u0027strong\u0027.","type":"text"},{"text":"Объединение нескольких категорий через fct_recode()","type":"heading"},{"text":"26: res2 \u003c- gss_cat %\u003e% mutate(partyid = fct_recode(partyid,\n27:   \u0027Republican, stronge\u0027 = \u0027Strong republican\u0027,\n28:   \u0027Republican, weak\u0027 = \u0027Not str republican\u0027,\n29:   \u0027Independent, near rep\u0027 = \u0027Ind,near rep\u0027,\n30:   \u0027Independent, near dem\u0027 = \u0027Ind,near dem\u0027,\n31:   \u0027Democrat, weak\u0027 = \u0027Not str democrat\u0027,\n32:   \u0027Democrat, stronge\u0027 = \u0027Strong democrat\u0027,\n33:   \u0027Other\u0027= \u0027No answer\u0027,\n34:   \u0027Other\u0027= \"Don\u0027t know\",\n35:   \u0027Other\u0027= \u0027Other party\u0027\n36: ))\n37: print(res2 %\u003e% count(partyid))","type":"code"},{"text":"В строках 33–35 трём разным старым категориям (\"No answer\", \"Don\u0027t know\", \"Other party\") присвоено одно и то же новое имя \u0027Other\u0027. В результате они автоматически склеиваются в одну общую категорию \u0027Other\u0027.","type":"text"},{"text":"Группировка списками: fct_collapse()","type":"heading"},{"text":"40: res3 \u003c- gss_cat %\u003e% mutate(partyid = fct_collapse(partyid,\n41:   other = c(\u0027No answer\u0027, \"Don\u0027t know\", \u0027Other party\u0027),\n42:   rep = c(\u0027Strong republican\u0027, \u0027Not str republican\u0027),\n43:   ind = c(\u0027Ind,near rep\u0027, \u0027Ind,near dem\u0027,\u0027Independent\u0027),\n44:   dem = c(\u0027Not str democrat\u0027, \u0027Strong democrat\u0027)\n45: ))\n47: print(res3 %\u003e% count(partyid))","type":"code"},{"text":"Когда нужно укрупнить сразу много категорий, удобнее использовать fct_collapse() и передавать старые названия списком c(...). Все 10 исходных партийных категорий сжаты в 4 крупные группы: other, rep, ind, dem.","type":"text"},{"text":"Автоматическое слияние мелких групп: fct_lump()","type":"heading"},{"text":"50: rez4 \u003c- gss_cat %\u003e% mutate(partyid = fct_lump(partyid))\n51: print(rez4 %\u003e% count(partyid))\n52: print(gss_cat %\u003e% mutate(relig = fct_lump(relig)) %\u003e% count(relig))","type":"code"},{"text":"Функция fct_lump() сама решает, какие редкие категории склеить в \"Other\" (по умолчанию она объединяет мелкие группы так, чтобы итоговая группа \"Other\" оставалась меньше самой маленькой из оставшихся крупных групп). В строке 52 то же самое показано для религий (relig).","type":"text"},{"text":"55: print(gss_cat %\u003e% mutate(relig = fct_lump(relig, n = 3)) %\u003e% count(relig, sort=TRUE))","type":"code"},{"text":"Параметр n = 3 задаёт жёсткое правило: оставить только 3 самые многочисленные религии, а все остальные объединить в \"Other\". Параметр sort = TRUE в count() сразу сортирует результат от большего к меньшему.","type":"text"}],"rawCode":"library(tidyverse)\r\nlibrary(forcats)\r\n\r\n# содержимое столбца\r\n# print(gss_cat$partyid)\r\n# выведем фактор связанный с столбцом partyid\r\nprint(gss_cat %\u003e% count(partyid))\r\n\r\n# функция fct_recode позволяет изменить значение элементов фактора,\r\n# функция fct_recode на вход принимает:\r\n# 1 - фактор который изменяем\r\n# 2 - новое значение в виде пары: новое_значение = старое_значение\r\nrez \u003c- gss_cat %\u003e% mutate(partyid = fct_recode(partyid,\r\n                                               \u0027Republican, stronge\u0027 = \u0027Strong republican\u0027,\r\n                                               \u0027Republican, weak\u0027 = \u0027Not str republican\u0027,\r\n                                               \u0027Independent, near rep\u0027 = \u0027Ind,near rep\u0027,\r\n                                               \u0027Independent, near dem\u0027 = \u0027Ind,near dem\u0027,\r\n                                               \u0027Democrat, weak\u0027 = \u0027Not str democrat\u0027,\r\n                                               \u0027Democrat, stronge\u0027 = \u0027Strong democrat\u0027\r\n))\r\nprint(rez %\u003e% count(partyid))\r\n\r\n\r\n# при изменении значений фактора можно одному новому элементу присвоить несколько старых значений,\r\n# тогда они объединятся в одну группу (элемента фактора)\r\nres2 \u003c- gss_cat %\u003e% mutate(partyid = fct_recode(partyid,\r\n                                                \u0027Republican, stronge\u0027 = \u0027Strong republican\u0027,\r\n                                                \u0027Republican, weak\u0027 = \u0027Not str republican\u0027,\r\n                                                \u0027Independent, near rep\u0027 = \u0027Ind,near rep\u0027,\r\n                                                \u0027Independent, near dem\u0027 = \u0027Ind,near dem\u0027,\r\n                                                \u0027Democrat, weak\u0027 = \u0027Not str democrat\u0027,\r\n                                                \u0027Democrat, stronge\u0027 = \u0027Strong democrat\u0027,\r\n                                                \u0027Other\u0027= \u0027No answer\u0027,\r\n                                                \u0027Other\u0027= \"Don\u0027t know\",\r\n                                                \u0027Other\u0027= \u0027Other party\u0027\r\n                                                ))\r\nprint(res2 %\u003e% count(partyid))\r\n\r\n# функция fct_collapse позволяет новому значению элемента фактора присвоить вектор старых значений\r\nres3 \u003c- gss_cat %\u003e% mutate(partyid = fct_collapse(partyid,\r\n                                                  other = c(\u0027No answer\u0027, \"Don\u0027t know\", \u0027Other party\u0027),\r\n                                                  rep = c(\u0027Strong republican\u0027, \u0027Not str republican\u0027),\r\n                                                  ind = c(\u0027Ind,near rep\u0027, \u0027Ind,near dem\u0027,\u0027Independent\u0027),\r\n                                                  dem = c(\u0027Not str democrat\u0027, \u0027Strong democrat\u0027)\r\n))\r\n\r\nprint(res3 %\u003e% count(partyid))\r\n\r\n# функция fct_lump позволяет небольшие группы автоматически объединить в одну\r\nrez4 \u003c- gss_cat %\u003e% mutate(partyid = fct_lump(partyid))\r\nprint(rez4 %\u003e% count(partyid))\r\nprint(gss_cat %\u003e% mutate(relig = fct_lump(relig)) %\u003e% count(relig))\r\n\r\n# функция fct_lump на вход может принять второй параметер, сколько групп мы желаем оставить\r\nprint(gss_cat %\u003e% mutate(relig = fct_lump(relig, n = 3)) %\u003e% count(relig, sort=TRUE))\r\n\r\n","dictionary":[{"term":"fct_recode(фактор, \"новое\" = \"старое\", ...)","details":["Что это и зачем нужно: Переименовывает указанные уровни фактора. Если дать нескольким старым уровням одинаковое новое имя, они объединятся. Уровни, которые не упомянуты, остаются как были","Аналогия из Excel: «Найти и заменить» для значений категории"]},{"term":"fct_collapse(фактор, новое = c(\"старое1\", \"старое2\"))","details":["Что это и зачем нужно: Объединяет несколько старых категорий (указанных через c(...)) в одну новую категорию","Аналогия из Excel: Группировка значений в сводной таблице"]},{"term":"fct_lump(фактор)","details":["Что это и зачем нужно: Автоматически объединяет самые маленькие группы в одну общую категорию \"Other\" («Прочее»), оставляя крупные","Аналогия из Excel: Авто-группировка «хвоста» редких значений в «Прочие»"]},{"term":"fct_lump(фактор, n = число)","details":["Что это и зачем нужно: То же самое, но вы сами задаёте, сколько самых крупных категорий оставить (например, n = 3 оставит 3 лидера + \"Other\")"]},{"term":"count(столбец, sort = TRUE)","details":["Что это и зачем нужно: Подсчитывает количество строк по каждой категории и сразу сортирует таблицу по убыванию (самые крупные сверху)"]}],"tag":"fct_recode"},{"id":"3.4","overview":"Этот большой практический скрипт полностью посвящён работе с датами и временем в R с помощью пакета lubridate (входит в семейство tidyverse).\n\nОбычные текстовые строки вроде \"2026-11-25\" компьютер не умеет складывать, вычитать или группировать по неделям. Пакет lubridate превращает текст и числа в настоящие объекты «Дата» и «Дата + Время».\n\nЧто вы научитесь делать:\n  - получать текущую дату и точное время (today, now);\n  - распознавать даты из любых текстовых строк (ymd, mdy, dmy, ymd_hms);\n  - собирать дату-время из отдельных столбцов таблицы (make_datetime) и писать свою мини-функцию;\n  - строить графики распределения рейсов по дням, минутам и неделям;\n  - извлекать из даты год, месяц, день недели, час, минуту (year, month, wday...);\n  - округлять даты вниз/вверх до часа или недели (floor_date, ceiling_date, round_date);\n  - изменять отдельные части даты (update) и вычитать даты друг из друга.","name":"3.4.R","lineCount":155,"walkthrough":[{"text":"1: library(nycflights13)\n2: library(tidyverse)\n3: library(lubridate)","type":"code"},{"text":"Подключаем учебные данные о рейсах, tidyverse и пакет lubridate.","type":"text"},{"text":"Получение текущей даты и разбор строк","type":"heading"},{"text":"7: print(today())\n9: print(now())","type":"code"},{"text":"Выводим текущую дату и текущую дату с точным временем.","type":"text"},{"text":"12: print(ymd(\u00272026*11*25\u0027))\n13: print(mdy(\"January 20 2025\"))\n14: print(dmy(\"31-Jan-2026\"))","type":"code"},{"text":"Превращаем разные текстовые форматы в единый стандарт даты (ГГГГ-ММ-ДД): год-месяц-день (ymd), месяц-день-год (mdy), день-месяц-год (dmy). Lubridate сам понимает звёздочки, дефисы и английские названия месяцев.","type":"text"},{"text":"17: print(ymd_hms(\u00272026-11-25 13/00/05\u0027))\n18: print(ymd_hm(\"2026/10/20 08:07\"))\n19: print(ymd_h(\"2026/10/20 08\"))","type":"code"},{"text":"То же самое, но с временем: с секундами (hms), с минутами (hm) и только с часами (h).","type":"text"},{"text":"Сборка даты-времени из столбцов и своя функция","type":"heading"},{"text":"22: print(flights %\u003e% select(year, month, day, hour, minute))\n24: f12 \u003c- flights %\u003e% select(year, month, day, hour, minute) %\u003e%\n25:   mutate(departure = make_datetime(year, month, day, hour, minute))\n26: print(f12)\n27: view(flights)","type":"code"},{"text":"В таблице flights год, месяц, день, час и минута лежат в отдельных столбцах. Функция make_datetime() склеивает их в один удобный столбец departure.","type":"text"},{"text":"31: make_datetime_100 \u003c- function(year, month, day, time){\n32:   make_datetime(year, month, day, time %/% 60, time %% 60)\n33: }","type":"code"},{"text":"Создаём свою функцию make_datetime_100, которая принимает дату и время числом, разделяя его нацело (%/% 60) и по остатку (%% 60).\n  [!] Примечание: в таблице flights время (например, 517 для 05:17) записано в формате ЧЧММ, поэтому для точного отделения часов и минут обычно делят на 100 (отсюда и название функции _100), а здесь в учебном коде указано 60.","type":"text"},{"text":"35: f1_dt \u003c- flights %\u003e% filter(!is.na(dep_time), !is.na(arr_time)) %\u003e% mutate(\n36:   dep_time = make_datetime_100(year, month, day, dep_time),\n37:   arr_time = make_datetime_100(year, month, day, arr_time),\n38:   sched_dep_time = make_datetime_100(year, month, day, sched_dep_time),\n39:   sched_arr_time = make_datetime_100(year, month, day, sched_arr_time)\n40: ) %\u003e% select(origin, dest, ends_with(\"delay\"), ends_with(\"time\"))\n41: print(f1_dt)","type":"code"},{"text":"Отбрасываем отменённые рейсы (где dep_time или arr_time пустые) и переводим все 4 столбца времени в полноценный формат «Дата + Время», оставив только нужные столбцы.","type":"text"},{"text":"Графики по времени","type":"heading"},{"text":"44: g1 \u003c- f1_dt %\u003e% ggplot(aes(dep_time)) + geom_freqpoly(binwidth = 86400)\n45: print(g1)","type":"code"},{"text":"График количества вылетов за весь год с шагом binwidth = 86400 секунд (= 1 день).","type":"text"},{"text":"48: g2 \u003c- f1_dt %\u003e% filter(dep_time \u003c ymd(20130102)) %\u003e% ggplot(aes(dep_time)) + geom_freqpoly(binwidth = 600)\n49: print(g2)","type":"code"},{"text":"График вылетов только за 1 января 2013 года (dep_time \u003c 2013-01-02) с шагом 600 секунд (= 10 минут).","type":"text"},{"text":"Преобразование типов и эпоха Unix","type":"heading"},{"text":"53: d \u003c- now()\n54: print(d)\n55: print(as_date(d))","type":"code"},{"text":"Берём текущее время now() и через as_date(d) отрезаем часы/минуты/секунды, оставляя только дату.","type":"text"},{"text":"59: n \u003c-32352\n60: print(as_datetime(n))\n62: n \u003c- 60\n63: print(as_date(n))","type":"code"},{"text":"Если передать в as_datetime() число, R считает его количеством секунд, прошедших с 1 января 1970 года («эпоха Unix»). Для as_date() число — это количество дней от 1 января 1970 года.","type":"text"},{"text":"Извлечение частей даты","type":"heading"},{"text":"76: datetime \u003c- ymd_hms(\"2026-11-25 14:26:37\")\n77: print(year(datetime))\n78: print(month(datetime))\n79: print(mday(datetime))\n80: print(yday(datetime))\n81: print(wday(datetime))\n82: print(hour(datetime))\n83: print(minute(datetime))\n84: print(second(datetime))","type":"code"},{"text":"По очереди достаём из даты год (2026), месяц (11), день месяца (25), день года (329), день недели (4 — среда, в США неделя начинается с воскресенья), час (14), минуту (26), секунду (37).","type":"text"},{"text":"88: print(month(datetime, label=TRUE, abbr=FALSE))\n89: print(month(datetime, abbr=FALSE))\n90: print(wday(datetime, label=TRUE, abbr=FALSE))\n91: print(wday(datetime, abbr=FALSE))","type":"code"},{"text":"Параметр label = TRUE просит вывести название текстом («ноябрь» / «среда») вместо числа, а abbr = FALSE — писать название полностью, без сокращений. (Без label = TRUE параметр abbr не влияет, выведутся числа 11 и 4).","type":"text"},{"text":"Анализ вылетов по дням недели и минутам","type":"heading"},{"text":"95: f1_dt \u003c- ...\n101: g3 \u003c- f1_dt %\u003e% mutate(wday = wday(dep_time, label=TRUE)) %\u003e% ggplot(aes(x = wday)) + geom_bar()\n102: print(g3)","type":"code"},{"text":"Вычисляем день недели для каждого вылета и строим столбчатую диаграмму: видно, что в субботу рейсов заметно меньше.","type":"text"},{"text":"105: g4 \u003c- f1_dt %\u003e% mutate(minute = minute(dep_time)) %\u003e% group_by(minute) %\u003e%\n106:   summarise(avg_delay = mean(arr_delay, na.rm=TRUE), n = n()) %\u003e%\n109:   ggplot(aes(minute, avg_delay)) + geom_line()\n110: print(g4)\n113: g5 \u003c- f1_dt %\u003e% mutate(minute = minute(sched_dep_time)) %\u003e% group_by(minute) %\u003e% ...","type":"code"},{"text":"Графики средней задержки прилёта в зависимости от минуты фактического вылета (g4) и минуты вылета по расписанию (g5).","type":"text"},{"text":"Округление дат","type":"heading"},{"text":"125: datetime \u003c- ymd_hms(\"2026-11-25 14:16:37\")\n126: print(floor_date(datetime, \u0027hour\u0027))\n127: print(ceiling_date(datetime, \u0027hour\u0027))\n128: print(round_date(datetime, \u0027hour\u0027))","type":"code"},{"text":"Для 14:16:37: floor_date округлит вниз до 14:00:00, ceiling_date — вверх до 15:00:00, round_date — до ближайшего часа (14:00:00).","type":"text"},{"text":"131: g6 \u003c- f1_dt %\u003e% count(week=floor_date(dep_time, \u0027week\u0027)) %\u003e% ggplot(aes(week, n)) + geom_line()\n132: print(g6)","type":"code"},{"text":"Считаем количество рейсов по неделям (округляя каждую дату вылета вниз до начала недели) и строим график динамики за год.","type":"text"},{"text":"Изменение частей даты и арифметика","type":"heading"},{"text":"135: datetime \u003c- ymd_hms(\"2026-11-25 14:46:37\")\n137: year(datetime) \u003c- 2025\n139: month(datetime) \u003c- 40\n140: print(datetime)","type":"code"},{"text":"Можно менять часть даты напрямую: меняем год на 2025. А если записать заведомо большое значение (month \u003c- 40), лишние месяцы автоматически перекинутся на следующие годы!","type":"text"},{"text":"143: datetime2 \u003c- update(datetime, year = 2025, month = 12, hour = 19)\n144: print(datetime2)","type":"code"},{"text":"Функция update() позволяет аккуратно поменять сразу несколько частей даты за один раз.","type":"text"},{"text":"147: datetime \u003c- ymd(\"2026-11-25\")\n148: datetime2 \u003c- ymd(\"2026-11-20\")\n149: print(datetime - datetime2)","type":"code"},{"text":"Вычитание дат работает напрямую: R ответит \"Time difference of 5 days\".","type":"text"},{"text":"151: rez5 \u003c- f1_dt %\u003e% filter(arr_time \u003cdep_time)\n152: print(rez5)","type":"code"},{"text":"Находим «странные» рейсы, у которых время прилёта оказалось раньше времени вылета (обычно это ночные рейсы, которые вылетели вечером, а прилетели уже после полуночи на следующие сутки, но дата у них осталась прежней).","type":"text"}],"rawCode":"library(nycflights13)\r\nlibrary(tidyverse)\r\nlibrary(lubridate)\r\n\r\n# способы создания дат и времени\r\n# 1 получение текущей даты\r\nprint(today())\r\n# 2 получение текущей даты и времени\r\nprint(now())\r\n\r\n# 1 создание значений даты и времени на основе строк\r\nprint(ymd(\u00272026*11*25\u0027))\r\nprint(mdy(\"January 20 2025\"))\r\nprint(dmy(\"31-Jan-2026\"))\r\n\r\n# # создание даты и времени  на основе строк\r\nprint(ymd_hms(\u00272026-11-25 13/00/05\u0027))\r\nprint(ymd_hm(\"2026/10/20 08:07\"))\r\nprint(ymd_h(\"2026/10/20 08\"))\r\n\r\n# 2 создание значений даты и времени на основе отдельных компонентов\r\nprint(flights %\u003e% select(year, month, day, hour, minute))\r\n\r\nf12 \u003c- flights %\u003e% select(year, month, day, hour, minute) %\u003e%\r\n                  mutate(departure = make_datetime(year, month, day, hour, minute))\r\nprint(f12)\r\nview(flights)\r\n\r\n# реализуем функцию для получения полный даты и времени (как объект datetime) по параметрам:\r\n# год, месяц, день, время заданное в минутах\r\nmake_datetime_100 \u003c- function(year, month, day, time){\r\n  make_datetime(year, month, day, time %/% 60, time %% 60)\r\n}\r\n\r\nf1_dt \u003c- flights %\u003e% filter(!is.na(dep_time), !is.na(arr_time)) %\u003e% mutate(\r\n  dep_time = make_datetime_100(year, month, day, dep_time),\r\n  arr_time = make_datetime_100(year, month, day, arr_time),\r\n  sched_dep_time = make_datetime_100(year, month, day, sched_dep_time),\r\n  sched_arr_time = make_datetime_100(year, month, day, sched_arr_time)\r\n) %\u003e% select(origin, dest, ends_with(\"delay\"), ends_with(\"time\"))\r\nprint(f1_dt)\r\n\r\n# построение графика распределения времени вылета на протяжении года\r\ng1 \u003c- f1_dt %\u003e% ggplot(aes(dep_time)) + geom_freqpoly(binwidth = 86400)\r\nprint(g1)\r\n\r\n# построение графика распределения времени вылета на протяжении одного дня\r\ng2 \u003c- f1_dt %\u003e% filter(dep_time \u003c ymd(20130102)) %\u003e% ggplot(aes(dep_time)) + geom_freqpoly(binwidth = 600)\r\nprint(g2)\r\n\r\n# 3 создание даты и времени на основе других типов\r\n# функции as_datetime() и as_date() позволяют переходить между значениями дата/время и дата\r\nd \u003c- now()\r\nprint(d)\r\nprint(as_date(d))\r\n\r\n\r\n# преобразование секунд пройденых от \"эпохи Unix\" (1970-01-01) в дату: функция as_datetime()\r\n n \u003c-32352\r\n print(as_datetime(n))\r\n# преобразование дней пройденых  от \"эпохи Unix\" (1970-01-01) в дату: функция as_date()\r\nn \u003c- 60\r\nprint(as_date(n))\r\n\r\n\r\n# извлечение из даты/времени составляющих компонентов\r\n# year() -год\r\n# month() - месяц\r\n# mday() - день месяца\r\n# yday() - день года\r\n# wday() - день недели\r\n# hour() - часы\r\n# minute() - минуты\r\n# second() - секунды\r\n\r\ndatetime \u003c- ymd_hms(\"2026-11-25 14:26:37\")\r\nprint(year(datetime))\r\nprint(month(datetime))\r\nprint(mday(datetime))\r\nprint(yday(datetime))\r\nprint(wday(datetime))\r\nprint(hour(datetime))\r\nprint(minute(datetime))\r\nprint(second(datetime))\r\n\r\n# для функций month() и wday() фргумент label=TRUE выдает сокращенное название\r\n# (label=FALSE выдает цифровое значение (по умолчанию), параметр abbr = FALSE выдает полное название)\r\nprint(month(datetime, label=TRUE, abbr=FALSE))\r\nprint(month(datetime, abbr=FALSE))\r\nprint(wday(datetime, label=TRUE, abbr=FALSE))\r\nprint(wday(datetime, abbr=FALSE))\r\n\r\n\r\n# построим график по количеству вылетов самолетов по дням недели\r\nf1_dt \u003c- flights %\u003e% filter(!is.na(dep_time), !is.na(arr_time)) %\u003e% mutate(\r\n  dep_time = make_datetime_100(year, month, day, dep_time),\r\n  arr_time = make_datetime_100(year, month, day, arr_time),\r\n  sched_dep_time = make_datetime_100(year, month, day, sched_dep_time),\r\n  sched_arr_time = make_datetime_100(year, month, day, sched_arr_time)\r\n) %\u003e% select(origin, dest, ends_with(\"delay\"), ends_with(\"time\"))\r\ng3 \u003c- f1_dt %\u003e% mutate(wday = wday(dep_time, label=TRUE)) %\u003e% ggplot(aes(x = wday)) + geom_bar()\r\nprint(g3)\r\n\r\n# построим график среднего времени задержки вылета в зависимости от минут часа\r\ng4 \u003c- f1_dt %\u003e% mutate(minute = minute(dep_time)) %\u003e% group_by(minute) %\u003e%\r\n  summarise(\r\n    avg_delay = mean(arr_delay, na.rm=TRUE),\r\n    n = n()\r\n  ) %\u003e% ggplot(aes(minute, avg_delay)) + geom_line()\r\nprint(g4)\r\n\r\n# построим график по времени вылета по расписанию\r\ng5 \u003c- f1_dt %\u003e% mutate(minute = minute(sched_dep_time)) %\u003e% group_by(minute) %\u003e%\r\n  summarise(\r\n    avg_delay = mean(arr_delay, na.rm =TRUE),\r\n    n = n()\r\n  ) %\u003e% ggplot(aes(minute, avg_delay)) + geom_line()\r\nprint(g5)\r\n\r\n# округление\r\n#  функция floor_date() округление в низ до указаного элемента\r\n#  функция round_date() округление до ближайшего значения\r\n#  функция ceiling_date() округление в верх\r\n\r\ndatetime \u003c- ymd_hms(\"2026-11-25 14:16:37\")\r\nprint(floor_date(datetime, \u0027hour\u0027))\r\nprint(ceiling_date(datetime, \u0027hour\u0027))\r\nprint(round_date(datetime, \u0027hour\u0027))\r\n\r\n# построение графика по количеству вылетов самолетов в неделю\r\ng6 \u003c- f1_dt %\u003e% count(week=floor_date(dep_time, \u0027week\u0027)) %\u003e% ggplot(aes(week, n)) + geom_line()\r\nprint(g6)\r\n\r\n# изменение значения элементов даты\r\ndatetime \u003c- ymd_hms(\"2026-11-25 14:46:37\")\r\nprint(datetime)\r\nyear(datetime) \u003c- 2025\r\nprint(datetime)\r\nmonth(datetime) \u003c- 40\r\nprint(datetime)\r\n\r\n# функция update позволяет изменить в дате сразу несколько элементов\r\ndatetime2 \u003c- update(datetime, year = 2025, month = 12, hour = 19)\r\nprint(datetime2)\r\n\r\n# применение к дате/времени арифметических действий\r\ndatetime \u003c- ymd(\"2026-11-25\")\r\ndatetime2 \u003c- ymd(\"2026-11-20\")\r\nprint(datetime - datetime2)\r\n\r\nrez5 \u003c- f1_dt %\u003e% filter(arr_time \u003cdep_time)\r\nprint(rez5)\r\n\r\n\r\n","dictionary":[{"term":"library(lubridate)","details":["Что это и зачем нужно: Подключает пакет для удобной работы с датами и временем"]},{"term":"today() и now()","details":["Что это и зачем нужно: Возвращают сегодняшнюю дату (today) и текущую дату со временем (now)","Аналогия из Excel: СЕГОДНЯ() и ТДАТА()"]},{"term":"ymd(), mdy(), dmy()","details":["Что это и зачем нужно: Превращают текст в дату. Буквы в названии означают порядок в строке: y — год (year), m — месяц (month), d — день (day). Разделители (-, /, *, пробелы) значения не имеют","Аналогия из Excel: ДАТАЗНАЧ()"]},{"term":"ymd_hms(), ymd_hm(), ymd_h()","details":["Что это и зачем нужно: То же самое, но с часами (h), минутами (m) и секундами (s)"]},{"term":"make_datetime(год, месяц, день, час, мин)","details":["Что это и зачем нужно: Собирает дату и время из отдельных числовых столбцов","Аналогия из Excel: ДАТА() + ВРЕМЯ()"]},{"term":"function(аргументы) { ... }","details":["Что это и зачем нужно: Создание собственной функции, чтобы не повторять одну и ту же формулу много раз"]},{"term":"as_date() и as_datetime()","details":["Что это и зачем нужно: Переводят дату-время в дату (отбрасывая часы/минуты) и обратно, а также переводят числа от «эпохи Unix» (01.01.1970) в дату"]},{"term":"year(), month(), mday(), yday(), wday(), hour(), minute(), second()","details":["Что это и зачем нужно: Извлекают из даты нужную часть: год, месяц, день месяца, день года (1–366), день недели (1–7), час, минуту, секунду","Аналогия из Excel: ГОД(), МЕСЯЦ(), ДЕНЬ(), ДЕНЬНЕД()..."]},{"term":"floor_date(), round_date(), ceiling_date()","details":["Что это и зачем нужно: Округляют дату до указанной единицы (\u0027hour\u0027, \u0027week\u0027 и т.д.): вниз (floor), до ближайшего (round) или вверх (ceiling)"]},{"term":"update(дата, ...)","details":["Что это и зачем нужно: Создаёт новую дату, заменяя сразу несколько её компонентов (например, год и час)"]},{"term":"geom_freqpoly(binwidth = ...)","details":["Что это и зачем нужно: Строит линейную гистограмму распределения (в секундах для оси времени: 86400 сек = 1 сутки, 600 сек = 10 минут)"]}],"tag":"lubridate"}]}];
+
+const STORAGE_DONE = "r_course_done_v1";
+const STORAGE_THEME = "r_course_theme_v1";
+
+let state = {
+  dayFilter: "all",
+  search: "",
+  selectedId: "1.2",
+  activeTab: "walkthrough",
+  done: JSON.parse(localStorage.getItem(STORAGE_DONE) || "{}"),
+  theme: localStorage.getItem(STORAGE_THEME) || "light"
+};
+
+if (state.theme === "dark") {
+  document.documentElement.setAttribute("data-theme", "dark");
+}
+
+function escapeHtml(str) {
+  return (str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function getAllScripts() {
+  const list = [];
+  COURSE_DATA.forEach(d => {
+    d.scripts.forEach(s => list.push({ ...s, dayId: d.id, dayTitle: d.title, dayColor: d.color }));
+  });
+  return list;
+}
+
+function updateStats() {
+  const all = getAllScripts();
+  const totalTerms = all.reduce((acc, s) => acc + (s.dictionary ? s.dictionary.length : 0), 0);
+  const doneCount = all.filter(s => state.done[s.id]).length;
+  document.getElementById("statDays").textContent = COURSE_DATA.length;
+  document.getElementById("statScripts").textContent = all.length;
+  document.getElementById("statTerms").textContent = totalTerms;
+  document.getElementById("statProgress").textContent = `${doneCount} / ${all.length}`;
+  document.getElementById("progressFill").style.width = `${Math.round((doneCount / all.length) * 100)}%`;
+}
+
+function renderDayPills() {
+  const container = document.getElementById("dayPills");
+  const pills = [{ id: "all", label: "Все дни" }].concat(
+    COURSE_DATA.map(d => ({ id: String(d.id), label: `День ${d.id}` }))
+  );
+  container.innerHTML = pills.map(p =>
+    `<button class="day-pill ${state.dayFilter === p.id ? "active" : ""}" data-day="${p.id}">${p.label}</button>`
+  ).join("");
+  container.querySelectorAll(".day-pill").forEach(btn => {
+    btn.onclick = () => {
+      state.dayFilter = btn.dataset.day;
+      renderSidebar();
+      renderDayPills();
+    };
+  });
+}
+
+function matchesSearch(script, q) {
+  if (!q) return true;
+  const hay = [
+    script.name,
+    script.tag,
+    script.overview,
+    script.rawCode,
+    ...(script.dictionary || []).map(d => d.term + " " + (d.details || []).join(" ")),
+    ...(script.walkthrough || []).map(w => w.text)
+  ].join("\n").toLowerCase();
+  return hay.includes(q.toLowerCase());
+}
+
+function renderSidebar() {
+  const container = document.getElementById("sidebarList");
+  const q = state.search.trim();
+  let html = "";
+
+  COURSE_DATA.forEach(day => {
+    if (state.dayFilter !== "all" && String(day.id) !== state.dayFilter) return;
+    const filtered = day.scripts.filter(s => matchesSearch(s, q));
+    if (filtered.length === 0) return;
+
+    html += `<div class="day-group">
+      <div class="day-group-title">
+        <span class="day-dot" style="background:${day.color}"></span>
+        День ${day.id}
+      </div>`;
+    filtered.forEach(s => {
+      const active = s.id === state.selectedId ? "active" : "";
+      const done = state.done[s.id] ? `<span class="done-badge" title="Изучено">&#10003;</span>` : "";
+      html += `<button class="script-item ${active}" data-id="${s.id}">
+        <span class="script-name" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</span>
+        <span class="script-meta">${done}<span class="tag">${escapeHtml(s.tag)}</span></span>
+      </button>`;
+    });
+    html += `</div>`;
+  });
+
+  if (!html) {
+    html = `<div class="empty-state">Ничего не найдено по запросу «${escapeHtml(q)}»</div>`;
+  }
+  container.innerHTML = html;
+  container.querySelectorAll(".script-item").forEach(btn => {
+    btn.onclick = () => {
+      state.selectedId = btn.dataset.id;
+      closeMobileDrawer();
+      renderSidebar();
+      renderMain();
+      if (window.innerWidth <= 960) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    };
+  });
+}
+
+function openMobileDrawer() {
+  document.getElementById("sidebarDrawer").classList.add("open");
+  document.getElementById("sidebarBackdrop").classList.add("open");
+}
+
+function closeMobileDrawer() {
+  document.getElementById("sidebarDrawer").classList.remove("open");
+  document.getElementById("sidebarBackdrop").classList.remove("open");
+}
+
+document.getElementById("mobileMenuBtn").addEventListener("click", openMobileDrawer);
+document.getElementById("sidebarCloseBtn").addEventListener("click", closeMobileDrawer);
+document.getElementById("sidebarBackdrop").addEventListener("click", closeMobileDrawer);
+
+function renderMain() {
+  const panel = document.getElementById("mainPanel");
+  const all = getAllScripts();
+  const idx = all.findIndex(s => s.id === state.selectedId);
+  const script = all[idx >= 0 ? idx : 0];
+  if (!script) {
+    panel.innerHTML = `<div class="empty-state">Выберите скрипт слева</div>`;
+    return;
+  }
+  const isDone = !!state.done[script.id];
+
+  let tabBody = "";
+  if (state.activeTab === "overview") {
+    tabBody = `<div class="overview-box">${escapeHtml(script.overview || "Описание отсутствует.")}</div>`;
+  } else if (state.activeTab === "dict") {
+    if (!script.dictionary || script.dictionary.length === 0) {
+      tabBody = `<div class="empty-state">Словарь для этого скрипта пуст.</div>`;
+    } else {
+      tabBody = `<div class="dict-grid">` + script.dictionary.map(item => `
+        <div class="dict-card">
+          <div class="dict-term">${escapeHtml(item.term)}</div>
+          ${(item.details || []).map(d => `<div class="dict-detail">${escapeHtml(d)}</div>`).join("")}
+        </div>
+      `).join("") + `</div>`;
+    }
+  } else if (state.activeTab === "walkthrough") {
+    if (!script.walkthrough || script.walkthrough.length === 0) {
+      tabBody = `<div class="empty-state">Построчный разбор отсутствует.</div>`;
+    } else {
+      tabBody = script.walkthrough.map(b => {
+        if (b.type === "heading") return `<div class="walk-heading">${escapeHtml(b.text)}</div>`;
+        if (b.type === "code") return `<pre class="code-block">${escapeHtml(b.text)}</pre>`;
+        if (b.type === "note") return `<div class="walk-note">${escapeHtml(b.text)}</div>`;
+        return `<div class="walk-text">${escapeHtml(b.text)}</div>`;
+      }).join("");
+    }
+  } else if (state.activeTab === "raw") {
+    const codeText = script.rawCode && script.rawCode.trim() ? script.rawCode : "# Файл пуст";
+    tabBody = `<div class="raw-wrap">
+      <button class="copy-btn" id="copyCodeBtn">Копировать R-код</button>
+      <pre class="code-block" style="padding-top:40px;">${escapeHtml(codeText)}</pre>
+    </div>`;
+  }
+
+  const prev = idx > 0 ? all[idx - 1] : null;
+  const next = idx < all.length - 1 ? all[idx + 1] : null;
+
+  panel.innerHTML = `
+    <div class="script-header">
+      <div>
+        <span class="day-badge" style="background:${script.dayColor}">${escapeHtml(script.dayTitle)}</span>
+        <h2 class="script-title">${escapeHtml(script.name)}</h2>
+        <div style="font-size:13px; color:var(--text-muted)">
+          Строк кода: <b>${script.lineCount}</b> &middot; Команд в словаре: <b>${(script.dictionary || []).length}</b>
+        </div>
+      </div>
+      <button class="btn ${isDone ? "btn-primary" : ""}" id="toggleDoneBtn">
+        ${isDone ? "&#10003; Изучено" : "Отметить изученным"}
+      </button>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn ${state.activeTab === "walkthrough" ? "active" : ""}" data-tab="walkthrough">Построчный разбор</button>
+      <button class="tab-btn ${state.activeTab === "dict" ? "active" : ""}" data-tab="dict">Словарь команд (${(script.dictionary || []).length})</button>
+      <button class="tab-btn ${state.activeTab === "overview" ? "active" : ""}" data-tab="overview">О чём урок</button>
+      <button class="tab-btn ${state.activeTab === "raw" ? "active" : ""}" data-tab="raw">Исходный R-код</button>
+    </div>
+
+    <div>${tabBody}</div>
+
+    <div class="footer-nav">
+      <div>${prev ? `<button class="btn" id="prevBtn">&larr; ${escapeHtml(prev.name)}</button>` : ""}</div>
+      <div>${next ? `<button class="btn" id="nextBtn">${escapeHtml(next.name)} &rarr;</button>` : ""}</div>
+    </div>
+  `;
+
+  panel.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.onclick = () => {
+      state.activeTab = btn.dataset.tab;
+      renderMain();
+    };
+  });
+
+  document.getElementById("toggleDoneBtn").onclick = () => {
+    if (state.done[script.id]) delete state.done[script.id];
+    else state.done[script.id] = true;
+    localStorage.setItem(STORAGE_DONE, JSON.stringify(state.done));
+    updateStats();
+    renderSidebar();
+    renderMain();
+  };
+
+  const copyBtn = document.getElementById("copyCodeBtn");
+  if (copyBtn) {
+    copyBtn.onclick = () => {
+      navigator.clipboard.writeText(script.rawCode || "").then(() => {
+        copyBtn.textContent = "Скопировано!";
+        setTimeout(() => copyBtn.textContent = "Копировать R-код", 1500);
+      });
+    };
+  }
+
+  const prevBtn = document.getElementById("prevBtn");
+  if (prevBtn && prev) prevBtn.onclick = () => { state.selectedId = prev.id; renderSidebar(); renderMain(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  const nextBtn = document.getElementById("nextBtn");
+  if (nextBtn && next) nextBtn.onclick = () => { state.selectedId = next.id; renderSidebar(); renderMain(); window.scrollTo({ top: 0, behavior: "smooth" }); };
+}
+
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  state.search = e.target.value;
+  renderSidebar();
+});
+
+document.getElementById("themeToggle").addEventListener("click", () => {
+  state.theme = state.theme === "dark" ? "light" : "dark";
+  localStorage.setItem(STORAGE_THEME, state.theme);
+  if (state.theme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+  else document.documentElement.removeAttribute("data-theme");
+});
+
+updateStats();
+renderDayPills();
+renderSidebar();
+renderMain();
+
+// ===== AI ASSISTANT =====
+const DEFAULT_AI_CFG = {
+  baseUrl: "https://api.numes.ai/api/v1",
+  apiKey: "sk-numes-v1-6442e5ccb4c71f706b94908a1c2559070e45ae41facc8c7c35b3d10256e313a1",
+  model: "deepseek/deepseek-v4.1-flash:free"
+};
+const STORAGE_AI_CFG = "r_course_ai_cfg_v1";
+
+let aiCfg = { ...DEFAULT_AI_CFG, ...JSON.parse(localStorage.getItem(STORAGE_AI_CFG) || "{}") };
+let aiMode = "solve";
+let aiHistory = [];
+let aiBusy = false;
+
+function syncAiSettingsUI() {
+  document.getElementById("aiBaseUrl").value = aiCfg.baseUrl;
+  document.getElementById("aiApiKey").value = aiCfg.apiKey;
+  document.getElementById("aiModelId").value = aiCfg.model;
+  document.getElementById("aiModelBadge").textContent = aiCfg.model;
+}
+
+function getCurrentScriptObj() {
+  const all = getAllScripts();
+  return all.find(s => s.id === state.selectedId) || all[0];
+}
+
+function updateAiLessonLabel() {
+  const s = getCurrentScriptObj();
+  const lbl = document.getElementById("aiLessonLabel");
+  if (lbl && s) lbl.textContent = `Учитывать текущий урок (${s.name})`;
+}
+
+function openAiDrawer() {
+  updateAiLessonLabel();
+  document.getElementById("aiDrawer").classList.add("open");
+  document.getElementById("aiBackdrop").classList.add("open");
+  if (aiHistory.length === 0) renderAiMessages();
+}
+
+function closeAiDrawer() {
+  document.getElementById("aiDrawer").classList.remove("open");
+  document.getElementById("aiBackdrop").classList.remove("open");
+}
+
+function formatAssistantMarkdown(text) {
+  const parts = text.split(/```(?:r|R)?\r?\n([\s\S]*?)```/g);
+  let html = "";
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 1) {
+      const code = parts[i].trim();
+      const cid = "c_" + Math.random().toString(36).slice(2, 9);
+      html += `<div class="ai-msg-code-wrap">
+        <button class="copy-btn" data-copy-id="${cid}">Копировать</button>
+        <pre class="code-block" id="${cid}" style="padding-top:34px; margin:4px 0;">${escapeHtml(code)}</pre>
+      </div>`;
+    } else {
+      const txt = parts[i].trim();
+      if (txt) {
+        const formatted = escapeHtml(txt)
+          .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
+          .replace(/`([^`]+)`/g, "<code style='background:var(--surface);padding:1px 5px;border-radius:4px;font-family:Consolas,monospace;font-size:12.5px;'>$1</code>")
+          .replace(/\n/g, "<br>");
+        html += `<div>${formatted}</div>`;
+      }
+    }
+  }
+  return html || escapeHtml(text);
+}
+
+function renderAiMessages() {
+  const box = document.getElementById("aiMessages");
+  if (aiHistory.length === 0) {
+    box.innerHTML = `<div class="ai-msg assistant">
+      <b>Привет! Я твой помощник по курсу R.</b><br>
+      Напиши условие задачи (или вставь код с ошибкой), и я решу её в стиле вашего курса (<code>tidyverse</code>, <code>dplyr</code>, <code>forcats</code>, <code>lubridate</code>, <code>ggplot2</code>).
+      <div class="ai-examples">
+        <button class="ai-example-btn" data-q="Отфильтруй рейсы из таблицы flights за январь (month == 1), у которых задержка прилёта больше 60 минут, и отсортируй по убыванию расстояния.">Пример 1: Фильтрация и сортировка flights</button>
+        <button class="ai-example-btn" data-q="Посчитай для каждого аэропорта назначения (dest) количество рейсов и среднюю задержку прилёта, оставь только аэропорты с > 500 рейсами.">Пример 2: Группировка и summarise через %>%</button>
+        <button class="ai-example-btn" data-q="Присоедини к таблице flights полные названия авиакомпаний из таблицы airlines по ключу carrier через left_join.">Пример 3: Объединение таблиц (left_join)</button>
+        <button class="ai-example-btn" data-q="Преобразуй строку '25.11.2026' в дату с помощью lubridate и выведи день недели полностью словами.">Пример 4: Работа с датами (lubridate)</button>
+      </div>
+    </div>`;
+    box.querySelectorAll(".ai-example-btn").forEach(btn => {
+      btn.onclick = () => {
+        document.getElementById("aiInput").value = btn.dataset.q;
+        sendAiMessage();
+      };
+    });
+    return;
+  }
+
+  box.innerHTML = aiHistory.map(m => {
+    if (m.role === "user") return `<div class="ai-msg user">${escapeHtml(m.content)}</div>`;
+    if (m.role === "error") return `<div class="ai-msg error">${escapeHtml(m.content)}</div>`;
+    return `<div class="ai-msg assistant">${formatAssistantMarkdown(m.content)}</div>`;
+  }).join("");
+
+  box.querySelectorAll("[data-copy-id]").forEach(btn => {
+    btn.onclick = () => {
+      const el = document.getElementById(btn.dataset.copyId);
+      if (!el) return;
+      navigator.clipboard.writeText(el.textContent).then(() => {
+        btn.textContent = "Скопировано!";
+        setTimeout(() => btn.textContent = "Копировать", 1500);
+      });
+    };
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+function buildSystemPrompt() {
+  const modeHint = aiMode === "solve"
+    ? "Режим: решить задачу с нуля. Дай готовый, чистый R-код и краткое объяснение."
+    : aiMode === "debug"
+    ? "Режим: найти ошибку в коде пользователя, объяснить причину простым языком и дать исправленный вариант."
+    : "Режим: подробно и просто объяснить, что делает присланный пользователем код на R, построчно.";
+
+  let sys = `Ты — дружелюбный преподаватель и помощник по языку программирования R. Пользователь готовится к контрольной работе по курсу R.
+Темы и пакеты, изученные на курсе:
+- День 1: tidyverse, dplyr, nycflights13 (таблица flights), filter(), arrange(), desc(), select(), starts_with(), ends_with(), contains(), everything(), mutate(), transmute(), %/%, %%, group_by(), summarise(), ungroup(), оператор %>%, ggplot().
+- День 2: group_by() + filter() (rank, n()), tibble(), as_tibble(), pull(), чтение/запись файлов (read.csv, readr::read_csv, data.table::fread, readxl::read_excel, openxlsx::write.xlsx, head, dim), объединение таблиц (inner_join, left_join, right_join, full_join, by = c("a"="b"), rename, count, tribble).
+- День 3: факторы (forcats: factor, levels, unique, fct_reorder, fct_relevel, fct_reorder2, fct_infreq, fct_rev, fct_recode, fct_collapse, fct_lump, gss_cat), даты и время (lubridate: today, now, ymd, mdy, dmy, ymd_hms, make_datetime, as_date, as_datetime, year, month, mday, yday, wday, hour, minute, second, floor_date, ceiling_date, round_date, update, арифметика дат).
+
+Правила ответа:
+1. Пиши простым, понятным русским языком (для новичка).
+2. Используй современный стиль курса (tidyverse / %>%), а не устаревший базовый R, если не просят иное.
+3. Обязательно оборачивай готовый R-код в блок \`\`\`r ... \`\`\`.
+4. ${modeHint}`;
+
+  if (document.getElementById("aiIncludeLesson").checked) {
+    const s = getCurrentScriptObj();
+    if (s) {
+      const terms = (s.dictionary || []).map(d => d.term).join(", ");
+      sys += `\n\nКонтекст текущего открытого урока (${s.name}):\nИзученные команды: ${terms}\nКод урока:\n${(s.rawCode || "").slice(0, 1800)}`;
+    }
+  }
+  return sys;
+}
+
+async function sendAiMessage() {
+  if (aiBusy) return;
+  const input = document.getElementById("aiInput");
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!aiCfg.baseUrl || !aiCfg.apiKey || !aiCfg.model) {
+    aiHistory.push({ role: "error", content: "Заполните Base URL, API Key и ID модели в настройках (кнопка ⚙ Настройки)." });
+    renderAiMessages();
+    return;
+  }
+
+  aiHistory.push({ role: "user", content: text });
+  input.value = "";
+  aiBusy = true;
+  const sendBtn = document.getElementById("aiSendBtn");
+  sendBtn.disabled = true;
+  sendBtn.textContent = "Думаю...";
+  renderAiMessages();
+
+  const useServerProxy = location.protocol.startsWith("http") && aiCfg.baseUrl.replace(/\/+$/, "") === DEFAULT_AI_CFG.baseUrl;
+  const endpoint = useServerProxy ? "/api/chat" : aiCfg.baseUrl.replace(/\/+$/, "") + "/chat/completions";
+  const apiMessages = [
+    { role: "system", content: buildSystemPrompt() },
+    ...aiHistory.filter(m => m.role === "user" || m.role === "assistant").slice(-8)
+  ];
+
+  const reqHeaders = { "Content-Type": "application/json" };
+  if (!useServerProxy) {
+    reqHeaders["Authorization"] = `Bearer ${aiCfg.apiKey}`;
+  }
+
+  try {
+    const resp = await fetch(endpoint, {
+      method: "POST",
+      headers: reqHeaders,
+      body: JSON.stringify({
+        model: aiCfg.model,
+        messages: apiMessages,
+        temperature: 0.2
+      })
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`HTTP ${resp.status}: ${errText.slice(0, 300)}`);
+    }
+
+    const data = await resp.json();
+    const reply = data?.choices?.[0]?.message?.content;
+    if (!reply) throw new Error("Модель вернула пустой ответ.");
+    aiHistory.push({ role: "assistant", content: reply });
+  } catch (err) {
+    let msg = `Ошибка запроса: ${err.message}`;
+    if (err.message.includes("Failed to fetch") || err.name === "TypeError") {
+      msg += "\n\nПодсказка: возможно, сервер API блокирует прямые запросы из браузера (CORS) или нет подключения к интернету.";
+    }
+    aiHistory.push({ role: "error", content: msg });
+  } finally {
+    aiBusy = false;
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Решить";
+    renderAiMessages();
+  }
+}
+
+syncAiSettingsUI();
+document.getElementById("openAiBtn").addEventListener("click", openAiDrawer);
+document.getElementById("aiCloseBtn").addEventListener("click", closeAiDrawer);
+document.getElementById("aiBackdrop").addEventListener("click", closeAiDrawer);
+document.getElementById("aiSettingsToggle").addEventListener("click", () => {
+  document.getElementById("aiSettingsPanel").classList.toggle("open");
+});
+document.getElementById("aiSaveSettingsBtn").addEventListener("click", () => {
+  aiCfg = {
+    baseUrl: document.getElementById("aiBaseUrl").value.trim(),
+    apiKey: document.getElementById("aiApiKey").value.trim(),
+    model: document.getElementById("aiModelId").value.trim()
+  };
+  localStorage.setItem(STORAGE_AI_CFG, JSON.stringify(aiCfg));
+  syncAiSettingsUI();
+  document.getElementById("aiSettingsPanel").classList.remove("open");
+});
+document.getElementById("aiResetSettingsBtn").addEventListener("click", () => {
+  aiCfg = { ...DEFAULT_AI_CFG };
+  localStorage.removeItem(STORAGE_AI_CFG);
+  syncAiSettingsUI();
+});
+document.getElementById("aiClearBtn").addEventListener("click", () => {
+  aiHistory = [];
+  renderAiMessages();
+});
+document.getElementById("aiModes").querySelectorAll(".ai-mode-btn").forEach(btn => {
+  btn.onclick = () => {
+    aiMode = btn.dataset.mode;
+    document.getElementById("aiModes").querySelectorAll(".ai-mode-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+  };
+});
+document.getElementById("aiSendBtn").addEventListener("click", sendAiMessage);
+document.getElementById("aiInput").addEventListener("keydown", (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+    e.preventDefault();
+    sendAiMessage();
+  }
+});
+</script>
+</body>
+</html>

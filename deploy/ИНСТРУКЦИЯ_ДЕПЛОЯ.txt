@@ -1,0 +1,33 @@
+=============================================================
+ИНСТРУКЦИЯ ПО ДЕПЛОЮ ДАШБОРДА С ИИ-ПОМОЩНИКОМ (ДЛЯ ТЕЛЕФОНА)
+=============================================================
+
+В этой папке (deploy/) уже всё готово для публикации в интернет:
+  - index.html                  — сам дашборд с ИИ-помощником
+  - netlify.toml                — настройки маршрута /api/chat для Netlify
+  - netlify/functions/chat.js   — серверный прокси для Netlify (убирает ошибку CORS)
+  - functions/api/chat.js       — серверный прокси для Cloudflare Pages (убирает ошибку CORS)
+
+ВАЖНО: при перетаскивании папки вручную на Netlify Drop серверные функции НЕ загружаются.
+Чтобы прокси /api/chat заработал, используйте один из двух бесплатных способов:
+
+-----------------------------------------------------------------
+СПОСОБ 1: Через GitHub + Netlify или Cloudflare Pages (проще всего)
+-----------------------------------------------------------------
+1. Создайте бесплатный репозиторий на GitHub и загрузите туда ВСЁ содержимое папки deploy/
+   (файлы index.html, netlify.toml и папки netlify/, functions/).
+2. Зайдите на Netlify (app.netlify.com) или Cloudflare Pages (dash.cloudflare.com):
+   - Netlify: "Add new site" -> "Import an existing project" -> выберите GitHub-репозиторий -> "Deploy site".
+   - Cloudflare Pages: "Workers & Pages" -> "Create" -> "Pages" -> "Connect to Git" -> выберите репозиторий -> "Save and Deploy".
+3. Готово! Через 30 секунд вы получите HTTPS-ссылку, которая работает и на ПК, и на любом телефоне.
+
+-----------------------------------------------------------------
+СПОСОБ 2: Через командную строку (если установлен Node.js)
+-----------------------------------------------------------------
+Для Netlify:
+  cd "c:\Users\Oleg\AG\Курсы R\deploy"
+  npx netlify-cli deploy --prod
+
+Для Cloudflare Pages:
+  cd "c:\Users\Oleg\AG\Курсы R\deploy"
+  npx wrangler pages deploy . --project-name=r-course-dashboard
